@@ -32,12 +32,27 @@ const campusPlaces = [
   { name: "Sala Boreal", short: "Sala Boreal", category: "bienestar", icon: "☁", text: "Descanso y recuperación de energía entre clases." }
 ];
 
+const gymExercises = {
+  pierna: [{ name: "sentadillas", reps: "15 reps" }, { name: "zancadas alternas", reps: "12 por pierna" }, { name: "puente de glúteo", reps: "15 reps" }, { name: "sentadilla sumo", reps: "12 reps" }, { name: "elevación de talones", reps: "20 reps" }],
+  brazo: [{ name: "flexiones de pecho", reps: "12 reps" }, { name: "fondos de tríceps en banca", reps: "12 reps" }, { name: "plancha con toque de hombro", reps: "20 toques" }, { name: "curl con mochila cargada", reps: "15 por brazo" }, { name: "flexiones diamante", reps: "10 reps" }],
+  espalda: [{ name: "superman", reps: "15 reps" }, { name: "remo invertido en mesa", reps: "12 reps" }, { name: "plancha lateral", reps: "20s por lado" }, { name: "buenos días con peso corporal", reps: "15 reps" }, { name: "extensión de espalda baja", reps: "15 reps" }],
+  cardio: [{ name: "jumping jacks", reps: "40s" }, { name: "burpees", reps: "10 reps" }, { name: "mountain climbers", reps: "40s" }, { name: "sprint en el sitio", reps: "30s" }, { name: "saltos de cuerda imaginaria", reps: "40s" }]
+};
+gymExercises.full = [gymExercises.pierna[0], gymExercises.brazo[0], gymExercises.cardio[1], gymExercises.espalda[2]];
+const gymFocusLabels = { pierna: "pierna", brazo: "brazo", espalda: "espalda", cardio: "cardio", full: "cuerpo completo" };
+
 function buildGymRoutine(preferences, minutes) {
   const m = minutes || 20;
-  if (preferences.energy === "baja") return `Rutina suave (~${m} min): movilidad articular, 2 rondas de 12 sentadillas sin peso, plancha 2x20s y estiramiento final.`;
-  if (m <= 15) return `Rutina exprés (${m} min): 3 rondas seguidas de 12 sentadillas + 10 flexiones + 20s de plancha, sin descanso entre ejercicios.`;
-  if (m <= 25) return `Rutina media (${m} min): calentamiento 3 min, 3 rondas de 15 sentadillas, 12 flexiones, 15 zancadas por pierna y 30s de plancha, cierra con 3 min de estiramiento.`;
-  return `Rutina completa (${m} min): calentamiento 5 min, 4 rondas de 15 sentadillas, 12 flexiones, 20 zancadas por pierna y 40s de plancha, cierra con 5 min de estiramiento.`;
+  const focus = gymExercises[preferences.gymFocus] ? preferences.gymFocus : "full";
+  const pool = gymExercises[focus];
+  const warmup = m <= 15 ? 2 : m <= 30 ? 4 : 5;
+  const cooldown = m <= 15 ? 2 : 4;
+  const workMinutes = Math.max(5, m - warmup - cooldown);
+  const roundMinutes = preferences.energy === "baja" ? 6 : 5;
+  const rounds = Math.max(1, Math.min(6, Math.round(workMinutes / roundMinutes)));
+  const exerciseList = pool.map(ex => `${ex.name} (${ex.reps})`).join(", ");
+  const intensity = preferences.energy === "baja" ? "sin saltos y a tu ritmo" : preferences.energy === "alta" ? "con el mínimo descanso entre series" : "con 30s de descanso entre series";
+  return `Enfoque ${gymFocusLabels[focus]} (${m} min): calienta ${warmup} min, luego ${rounds} rondas de ${exerciseList}, ${intensity}. Cierra con ${cooldown} min de estiramiento.`;
 }
 
 function buildDanceRoutine(preferences, minutes) {
@@ -51,11 +66,25 @@ function buildMindfulRoutine(preferences, minutes) {
   return `Respira en ciclos de 4-7-8 durante 3 min y usa el resto de los ${m} min para escribir 3 cosas por las que sientes gratitud o simplemente descansar la mente sin el celular.`;
 }
 
+const cambasTopics = {
+  matematicas: { temas: "operaciones con fracciones, ecuaciones lineales y sistemas 2x2", tarea: "trae dos ejercicios que no te hayan salido junto con el procedimiento que intentaste." },
+  logica: { temas: "tablas de verdad, proposiciones compuestas y reglas de inferencia", tarea: "lleva un ejercicio de silogismos o de validez de argumentos." },
+  estadistica: { temas: "medidas de tendencia central, varianza y distribución normal", tarea: "trae el punto del taller o la base de datos donde te trabaste." },
+  calculo: { temas: "límites, derivadas y la regla de la cadena", tarea: "anota el ejercicio de derivación o integración que quieres repasar." }
+};
+const cambasLabels = { matematicas: "Matemáticas", logica: "Lógica", estadistica: "Estadística", calculo: "Cálculo" };
+
+function buildCambasRoutine(preferences) {
+  const key = cambasTopics[preferences.cambasSubject] ? preferences.cambasSubject : "matematicas";
+  const topic = cambasTopics[key];
+  return `Ayuda en ${cambasLabels[key]}: repasa ${topic.temas} antes de llegar. Para el monitor, ${topic.tarea}`;
+}
+
 const goalCatalog = {
   comer: { icon: "🥪", label: "Comer", minutes: 25, pick: p => p.budget === "cero" ? "Plazoleta" : "Cafetería Principal", action: p => p.budget === "cero" ? "Come lo que llevaste y toma agua." : "Haz una pausa para comer sin afán." },
   estudiar: { icon: "📚", label: "Estudiar", minutes: 35, pick: p => p.ambience === "grupo" ? "Edificio E" : "Biblioteca", action: p => p.ambience === "grupo" ? "Avanza con tu equipo en un aula grupal." : "Trabaja una tarea concreta con foco." },
-  descansar: { icon: "☁️", label: "Descansar", minutes: 20, pick: p => p.ambience === "aire-libre" ? "Plazoleta" : "Sala Boreal", action: () => "Baja el ritmo y recupera energía." },
-  ayuda: { icon: "✦", label: "Pedir ayuda", minutes: 35, pick: () => "CAMBAS 101A", action: () => "Lleva una duda concreta a los monitores." },
+  descansar: { icon: "☁️", label: "Descansar", minutes: 20, pick: p => p.ambience === "aire-libre" ? "Plazoleta" : "Sala Boreal", action: (p, minutes) => p.alarmEnabled ? `Recuéstate o cierra los ojos; programamos tu alarma para que suene en ${p.alarmMinutes} min.` : "Baja el ritmo y recupera energía." },
+  ayuda: { icon: "✦", label: "Pedir ayuda", minutes: 35, pick: () => "CAMBAS 101A", action: p => buildCambasRoutine(p) },
   entrenar: { icon: "↗", label: "Entrenar", minutes: 35, pick: () => "Gimnasio / CADI", action: (p, minutes) => buildGymRoutine(p, minutes) },
   bailar: { icon: "💃", label: "Bailar", minutes: 30, pick: p => p.ambience === "aire-libre" ? "Plazoleta" : "Sala Boreal", action: (p, minutes) => buildDanceRoutine(p, minutes) },
   meditar: { icon: "🧘", label: "Meditar", minutes: 20, pick: () => "Sala Boreal", action: (p, minutes) => buildMindfulRoutine(p, minutes) },
@@ -64,6 +93,75 @@ const goalCatalog = {
   imprimir: { icon: "▤", label: "Imprimir", minutes: 15, pick: p => p.alternate ? "Edificio C" : "Biblioteca", action: () => "Imprime y revisa lo necesario para tu clase." },
   diligencia: { icon: "✓", label: "Hacer una vuelta", minutes: 20, pick: p => p.alternate ? "Edificio K" : "Edificio B", action: () => "Resuelve tu trámite o consulta pendiente." }
 };
+
+let alarmDeadline = null;
+let alarmInterval = null;
+let alarmBeepInterval = null;
+let alarmAudioCtx = null;
+
+function ensureAudioContext() {
+  if (!alarmAudioCtx) alarmAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (alarmAudioCtx.state === "suspended") alarmAudioCtx.resume();
+  return alarmAudioCtx;
+}
+
+function beepOnce() {
+  const ctx = ensureAudioContext();
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
+  oscillator.frequency.value = 880;
+  oscillator.connect(gain);
+  gain.connect(ctx.destination);
+  gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+  oscillator.start();
+  oscillator.stop(ctx.currentTime + 0.4);
+}
+
+function stopAlarmSound() {
+  window.clearInterval(alarmBeepInterval);
+  alarmBeepInterval = null;
+}
+
+function cancelAlarm() {
+  window.clearInterval(alarmInterval);
+  stopAlarmSound();
+  alarmInterval = null;
+  alarmDeadline = null;
+  const bar = document.querySelector("#alarm-bar");
+  bar.hidden = true;
+  bar.classList.remove("ringing");
+}
+
+function ringAlarm() {
+  const bar = document.querySelector("#alarm-bar");
+  document.querySelector("#alarm-status").textContent = "¡Hora de despertar! Termina tu descanso en Sala Boreal.";
+  bar.classList.add("ringing");
+  let count = 0;
+  alarmBeepInterval = window.setInterval(() => { beepOnce(); count += 1; if (count >= 14) stopAlarmSound(); }, 700);
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification("Entre Clase", { body: "Se acabó tu descanso en Sala Boreal. ¡Hora de despertar!" });
+  }
+}
+
+function scheduleAlarm(minutes) {
+  cancelAlarm();
+  alarmDeadline = Date.now() + minutes * 60000;
+  const bar = document.querySelector("#alarm-bar");
+  const status = document.querySelector("#alarm-status");
+  bar.hidden = false;
+  bar.classList.remove("ringing");
+  const tick = () => {
+    const remaining = Math.max(0, Math.round((alarmDeadline - Date.now()) / 1000));
+    const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
+    const ss = String(remaining % 60).padStart(2, "0");
+    status.textContent = remaining > 0 ? `Alarma para Sala Boreal en ${mm}:${ss}` : "¡Hora de despertar!";
+    if (remaining <= 0) { window.clearInterval(alarmInterval); alarmInterval = null; ringAlarm(); }
+  };
+  tick();
+  alarmInterval = window.setInterval(tick, 1000);
+}
 
 const allLocationNames = campusPlaces.map(place => place.short);
 const locationSelect = document.querySelector("#location");
@@ -160,9 +258,34 @@ document.querySelector("[data-multigroup='needs']").addEventListener("click", ev
   updateGoalCount();
 });
 
+document.querySelector("#alarm-enabled").addEventListener("change", event => {
+  ensureAudioContext();
+  if (event.target.checked && "Notification" in window && Notification.permission === "default") Notification.requestPermission();
+  if (!event.target.checked) cancelAlarm();
+  document.querySelector("#alarm-minutes-wrap").hidden = !event.target.checked;
+});
+
+document.querySelector("#alarm-cancel").addEventListener("click", () => { cancelAlarm(); showToast("Alarma cancelada."); });
+
 function updateGoalCount() {
   const count = state.goals.size;
   document.querySelector("#goal-count").textContent = `${count} ${count === 1 ? "seleccionada" : "seleccionadas"}`;
+  updateDynamicSections();
+}
+
+function updateDynamicSections() {
+  const showGym = state.goals.has("entrenar");
+  const showCambas = state.goals.has("ayuda");
+  const showAlarm = state.goals.has("descansar");
+  document.querySelector("#gym-focus-wrap").hidden = !showGym;
+  document.querySelector("#cambas-subject-wrap").hidden = !showCambas;
+  document.querySelector("#alarm-toggle-wrap").hidden = !showAlarm;
+  if (!showAlarm) {
+    document.querySelector("#alarm-enabled").checked = false;
+    cancelAlarm();
+  }
+  document.querySelector("#alarm-minutes-wrap").hidden = !(showAlarm && document.querySelector("#alarm-enabled").checked);
+  document.querySelector("#activity-details").hidden = !(showGym || showCambas || showAlarm);
 }
 
 function formatDuration(minutes) {
@@ -185,7 +308,11 @@ function getPreferences() {
     accessible: document.querySelector("#accessible").checked,
     note: document.querySelector("#custom-note").value.trim(),
     energy: state.energy,
-    alternate: state.alternate
+    alternate: state.alternate,
+    gymFocus: document.querySelector("#gym-focus").value,
+    cambasSubject: document.querySelector("#cambas-subject").value,
+    alarmEnabled: document.querySelector("#alarm-enabled").checked,
+    alarmMinutes: Math.min(180, Math.max(5, Number(document.querySelector("#alarm-minutes").value) || 20))
   };
 }
 
@@ -252,10 +379,17 @@ function renderPlan(shouldScroll = true) {
   renderTimeline(plan.items); updateMaps(plan);
   if (plan.omitted) showToast("Ajustamos el número de actividades al tiempo disponible.");
   if (shouldScroll) document.querySelector("#resultado").scrollIntoView({ behavior: "smooth", block: "start" });
-  return { duration_minutes: state.time, origin: plan.origin, destination: plan.destination, goals: [...state.goals], preferences: plan.preferences, plan: plan.items.map(({ minutes, place }) => ({ minutes, place })) };
+  return { duration_minutes: state.time, origin: plan.origin, destination: plan.destination, goals: [...state.goals], preferences: plan.preferences, plan: plan.items.map(({ minutes, place, goal }) => ({ minutes, place, goal })) };
 }
 
-document.querySelector("#planner-form").addEventListener("submit", event => { event.preventDefault(); state.alternate = false; renderPlan(); });
+document.querySelector("#planner-form").addEventListener("submit", event => {
+  event.preventDefault();
+  state.alternate = false;
+  const summary = renderPlan();
+  const restIncluded = summary.plan.some(item => item.goal === "descansar");
+  if (restIncluded && summary.preferences.alarmEnabled) { scheduleAlarm(summary.preferences.alarmMinutes); showToast(`Alarma puesta para dentro de ${summary.preferences.alarmMinutes} min.`); }
+  else cancelAlarm();
+});
 document.querySelector("#alternate-plan").addEventListener("click", () => { state.alternate = !state.alternate; renderPlan(false); showToast(state.alternate ? "Cambiamos algunos lugares del recorrido." : "Volvimos al plan principal."); });
 document.querySelector("#route-toggle").addEventListener("click", event => { const directions = document.querySelector("#directions"); directions.hidden = !directions.hidden; event.currentTarget.firstChild.textContent = directions.hidden ? "Ver indicaciones paso a paso " : "Ocultar indicaciones "; });
 
@@ -285,7 +419,7 @@ function selectGoals(goals) {
 
 function registerWebMCP() {
   const context = document.modelContext; if (!context?.registerTool) return;
-  context.registerTool({ name: "create_campus_plan", title: "Crear plan personalizado entre clases", description: "Combina hasta cuatro actividades, origen, destino y preferencias; actualiza el plan visible y la ruta de Google Maps.", inputSchema: { type: "object", properties: { time: { type: "integer", enum: [30,60,120,180] }, origin: { type: "string", enum: allLocationNames }, destination: { type: "string", enum: allLocationNames }, goals: { type: "array", minItems: 1, maxItems: 4, uniqueItems: true, items: { type: "string", enum: Object.keys(goalCatalog) } }, energy: { type: "string", enum: ["baja","media","alta"] }, pace: { type: "string", enum: ["tranquilo","equilibrado","intenso"] }, budget: { type: "string", enum: ["cero","bajo","flexible"] }, ambience: { type: "string", enum: ["silencio","indiferente","aire-libre","grupo"] }, accessible: { type: "boolean" } }, required: ["time","origin","destination","goals","energy","pace","budget","ambience","accessible"], additionalProperties: false }, annotations: { readOnlyHint: false, untrustedContentHint: false }, execute(input) { selectSingle("time", String(input.time)); selectSingle("energy", input.energy); selectGoals(input.goals); locationSelect.value = input.origin; nextLocationSelect.value = input.destination; document.querySelector("#pace").value = input.pace; document.querySelector("#budget").value = input.budget; document.querySelector("#ambience").value = input.ambience; document.querySelector("#accessible").checked = input.accessible; updateTimeWindow(); return renderPlan(false); } });
+  context.registerTool({ name: "create_campus_plan", title: "Crear plan personalizado entre clases", description: "Combina hasta cuatro actividades, origen, destino y preferencias; actualiza el plan visible y la ruta de Google Maps.", inputSchema: { type: "object", properties: { time: { type: "integer", enum: [30,60,120,180] }, origin: { type: "string", enum: allLocationNames }, destination: { type: "string", enum: allLocationNames }, goals: { type: "array", minItems: 1, maxItems: 4, uniqueItems: true, items: { type: "string", enum: Object.keys(goalCatalog) } }, energy: { type: "string", enum: ["baja","media","alta"] }, pace: { type: "string", enum: ["tranquilo","equilibrado","intenso"] }, budget: { type: "string", enum: ["cero","bajo","flexible"] }, ambience: { type: "string", enum: ["silencio","indiferente","aire-libre","grupo"] }, accessible: { type: "boolean" }, gymFocus: { type: "string", enum: Object.keys(gymExercises) }, cambasSubject: { type: "string", enum: Object.keys(cambasTopics) }, alarmMinutes: { type: "integer", minimum: 5, maximum: 180 } }, required: ["time","origin","destination","goals","energy","pace","budget","ambience","accessible"], additionalProperties: false }, annotations: { readOnlyHint: false, untrustedContentHint: false }, execute(input) { selectSingle("time", String(input.time)); selectSingle("energy", input.energy); selectGoals(input.goals); locationSelect.value = input.origin; nextLocationSelect.value = input.destination; document.querySelector("#pace").value = input.pace; document.querySelector("#budget").value = input.budget; document.querySelector("#ambience").value = input.ambience; document.querySelector("#accessible").checked = input.accessible; if (input.gymFocus) document.querySelector("#gym-focus").value = input.gymFocus; if (input.cambasSubject) document.querySelector("#cambas-subject").value = input.cambasSubject; if (input.alarmMinutes) { document.querySelector("#alarm-minutes").value = input.alarmMinutes; document.querySelector("#alarm-enabled").checked = true; } updateTimeWindow(); const summary = renderPlan(false); if (document.querySelector("#alarm-enabled").checked && summary.plan.some(item => item.goal === "descansar")) scheduleAlarm(summary.preferences.alarmMinutes); return summary; } });
   context.registerTool({ name: "search_campus_places", title: "Buscar lugares del campus", description: "Busca edificios, servicios y espacios de bienestar en el directorio de Icesi incluido en la app.", inputSchema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false }, annotations: { readOnlyHint: true, untrustedContentHint: false }, execute({query}) { const q = query.trim().toLocaleLowerCase("es"); return campusPlaces.filter(place => `${place.name} ${place.text}`.toLocaleLowerCase("es").includes(q)).slice(0,10); } });
   context.registerTool({ name: "read_current_campus_plan", title: "Leer plan actual", description: "Devuelve las preferencias y los pasos del plan visible actualmente.", inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, untrustedContentHint: false }, execute() { return renderPlan(false); } });
 }

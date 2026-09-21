@@ -76,8 +76,16 @@
             </div>
           </fieldset>
 
+          <fieldset id="activity-details" hidden>
+            <legend><span>04</span> Detalles de tus actividades</legend>
+            <label class="select-wrap" id="gym-focus-wrap" hidden><span class="select-label">¿Qué quieres trabajar en el gym?</span><select id="gym-focus"><option value="full">Cuerpo completo</option><option value="pierna">Pierna</option><option value="brazo">Brazo</option><option value="espalda">Espalda</option><option value="cardio">Cardio</option></select></label>
+            <label class="select-wrap" id="cambas-subject-wrap" hidden><span class="select-label">¿En qué necesitas ayuda en CAMBAS?</span><select id="cambas-subject"><option value="matematicas">Matemáticas</option><option value="logica">Lógica</option><option value="estadistica">Estadística</option><option value="calculo">Cálculo</option></select></label>
+            <label class="check-row" id="alarm-toggle-wrap" hidden><input id="alarm-enabled" type="checkbox" /> Ponme una alarma para despertar en Sala Boreal</label>
+            <label class="note-label" id="alarm-minutes-wrap" hidden>¿En cuántos minutos quieres la alarma?<input id="alarm-minutes" type="number" min="5" max="180" step="5" value="20" /></label>
+          </fieldset>
+
           <fieldset>
-            <legend><span>04</span> ¿Cómo está tu energía?</legend>
+            <legend><span>05</span> ¿Cómo está tu energía?</legend>
             <div class="energy-row" data-group="energy">
               <button type="button" data-value="baja">Baja</button>
               <button class="selected" type="button" data-value="media">Media</button>
@@ -86,7 +94,7 @@
           </fieldset>
 
           <fieldset class="preference-box">
-            <legend><span>05</span> Personaliza el plan</legend>
+            <legend><span>06</span> Personaliza el plan</legend>
             <div class="preference-grid">
               <label>Ritmo<select id="pace"><option value="tranquilo">Tranquilo</option><option value="equilibrado" selected>Equilibrado</option><option value="intenso">Aprovechar al máximo</option></select></label>
               <label>Presupuesto<select id="budget"><option value="cero">Sin gastar</option><option value="bajo" selected>Hasta $15.000</option><option value="flexible">Flexible</option></select></label>
@@ -215,6 +223,10 @@
       <button class="primary-action" id="start-planning" type="button">Entendido, crear mi plan</button>
     </dialog>
 
+    <div class="alarm-bar" id="alarm-bar" hidden role="status" aria-live="assertive">
+      <span id="alarm-status">Alarma programada</span>
+      <button type="button" id="alarm-cancel">Cancelar alarma</button>
+    </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="./app.js"></script>
   </body>
