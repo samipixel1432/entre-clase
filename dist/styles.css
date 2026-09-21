@@ -153,6 +153,9 @@ legend small { float: right; margin-top: 6px; color: var(--green); font-family: 
 .need-options.multi { grid-template-columns: repeat(4, 1fr); }
 .need-options.multi button { min-height: 74px; }
 .need-options.multi button.selected { background: var(--green); border-color: var(--green); }
+.activity-detail { padding: 14px 16px; margin-bottom: 10px; background: white; border: 1px solid var(--line); border-radius: 14px; }
+.activity-detail:last-child { margin-bottom: 0; }
+.activity-detail-title { display: block; margin-bottom: 10px; color: var(--green); font-family: "Manrope", sans-serif; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
 .preference-box { padding-top: 22px; border-top: 1px solid var(--line); }
 .preference-grid { grid-template-columns: repeat(3, 1fr); }
 .preference-grid select { height: 44px; margin-top: 5px; padding-left: 10px; font-size: 13px; }

@@ -55,10 +55,18 @@ function buildGymRoutine(preferences, minutes) {
   return `Enfoque ${gymFocusLabels[focus]} (${m} min): calienta ${warmup} min, luego ${rounds} rondas de ${exerciseList}, ${intensity}. Cierra con ${cooldown} min de estiramiento.`;
 }
 
+const danceStyles = {
+  salsa: { label: "salsa caleña", tip: "practica el paso básico contra tiempo y los giros simples; en Cali cualquier tutorial de salsa te sirve para calentar." },
+  urbano: { label: "urbano / reggaetón", tip: "sigue una coreografía corta de reggaetón o perreo básico, marcando bien el golpe de cadera." },
+  bachata: { label: "bachata", tip: "repite el paso básico de bachata (4 tiempos con el toque de cadera) antes de meterle giros." },
+  folclor: { label: "folclor colombiano", tip: "prueba unos pasos de cumbia o mapalé, típicos de las actividades de Artes Escénicas del CADI." },
+  zumba: { label: "zumba / cardio dance", tip: "sigue una rutina de zumba de intensidad media-alta para subir el ritmo cardiaco." }
+};
+
 function buildDanceRoutine(preferences, minutes) {
   const m = minutes || 20;
-  const style = preferences.energy === "alta" ? "reggaetón o salsa" : preferences.energy === "baja" ? "estiramiento con música suave" : "pop comercial";
-  return `Baila ${style} durante ${m} min: busca un tutorial corto (“${style} básico para principiantes”) y repite la coreografía 2-3 veces para soltarte.`;
+  const style = danceStyles[preferences.danceStyle] || danceStyles.salsa;
+  return `Baila ${style.label} durante ${m} min: busca un tutorial corto (“${style.label} básico para principiantes”), ${style.tip}`;
 }
 
 function buildMindfulRoutine(preferences, minutes) {
@@ -68,11 +76,11 @@ function buildMindfulRoutine(preferences, minutes) {
 
 const cambasTopics = {
   matematicas: { temas: "operaciones con fracciones, ecuaciones lineales y sistemas 2x2", tarea: "trae dos ejercicios que no te hayan salido junto con el procedimiento que intentaste." },
-  logica: { temas: "tablas de verdad, proposiciones compuestas y reglas de inferencia", tarea: "lleva un ejercicio de silogismos o de validez de argumentos." },
-  estadistica: { temas: "medidas de tendencia central, varianza y distribución normal", tarea: "trae el punto del taller o la base de datos donde te trabaste." },
-  calculo: { temas: "límites, derivadas y la regla de la cadena", tarea: "anota el ejercicio de derivación o integración que quieres repasar." }
+  calculo: { temas: "límites, derivadas y la regla de la cadena", tarea: "anota el ejercicio de derivación o integración que quieres repasar." },
+  algebra: { temas: "vectores, matrices y sistemas de ecuaciones", tarea: "lleva el ejercicio de álgebra lineal donde te quedaste trabado." },
+  estadistica: { temas: "medidas de tendencia central, varianza y distribución normal", tarea: "trae el punto del taller o la base de datos donde te trabaste." }
 };
-const cambasLabels = { matematicas: "Matemáticas", logica: "Lógica", estadistica: "Estadística", calculo: "Cálculo" };
+const cambasLabels = { matematicas: "Matemáticas", calculo: "Cálculo", algebra: "Álgebra lineal", estadistica: "Estadística" };
 
 function buildCambasRoutine(preferences) {
   const key = cambasTopics[preferences.cambasSubject] ? preferences.cambasSubject : "matematicas";
@@ -275,17 +283,19 @@ function updateGoalCount() {
 
 function updateDynamicSections() {
   const showGym = state.goals.has("entrenar");
+  const showDance = state.goals.has("bailar");
   const showCambas = state.goals.has("ayuda");
   const showAlarm = state.goals.has("descansar");
-  document.querySelector("#gym-focus-wrap").hidden = !showGym;
-  document.querySelector("#cambas-subject-wrap").hidden = !showCambas;
-  document.querySelector("#alarm-toggle-wrap").hidden = !showAlarm;
+  document.querySelector("#entrenar-detail").hidden = !showGym;
+  document.querySelector("#bailar-detail").hidden = !showDance;
+  document.querySelector("#cambas-detail").hidden = !showCambas;
+  document.querySelector("#descansar-detail").hidden = !showAlarm;
   if (!showAlarm) {
     document.querySelector("#alarm-enabled").checked = false;
     cancelAlarm();
   }
   document.querySelector("#alarm-minutes-wrap").hidden = !(showAlarm && document.querySelector("#alarm-enabled").checked);
-  document.querySelector("#activity-details").hidden = !(showGym || showCambas || showAlarm);
+  document.querySelector("#activity-details").hidden = !(showGym || showDance || showCambas || showAlarm);
 }
 
 function formatDuration(minutes) {
@@ -310,6 +320,7 @@ function getPreferences() {
     energy: state.energy,
     alternate: state.alternate,
     gymFocus: document.querySelector("#gym-focus").value,
+    danceStyle: document.querySelector("#dance-style").value,
     cambasSubject: document.querySelector("#cambas-subject").value,
     alarmEnabled: document.querySelector("#alarm-enabled").checked,
     alarmMinutes: Math.min(180, Math.max(5, Number(document.querySelector("#alarm-minutes").value) || 20))
@@ -419,7 +430,7 @@ function selectGoals(goals) {
 
 function registerWebMCP() {
   const context = document.modelContext; if (!context?.registerTool) return;
-  context.registerTool({ name: "create_campus_plan", title: "Crear plan personalizado entre clases", description: "Combina hasta cuatro actividades, origen, destino y preferencias; actualiza el plan visible y la ruta de Google Maps.", inputSchema: { type: "object", properties: { time: { type: "integer", enum: [30,60,120,180] }, origin: { type: "string", enum: allLocationNames }, destination: { type: "string", enum: allLocationNames }, goals: { type: "array", minItems: 1, maxItems: 4, uniqueItems: true, items: { type: "string", enum: Object.keys(goalCatalog) } }, energy: { type: "string", enum: ["baja","media","alta"] }, pace: { type: "string", enum: ["tranquilo","equilibrado","intenso"] }, budget: { type: "string", enum: ["cero","bajo","flexible"] }, ambience: { type: "string", enum: ["silencio","indiferente","aire-libre","grupo"] }, accessible: { type: "boolean" }, gymFocus: { type: "string", enum: Object.keys(gymExercises) }, cambasSubject: { type: "string", enum: Object.keys(cambasTopics) }, alarmMinutes: { type: "integer", minimum: 5, maximum: 180 } }, required: ["time","origin","destination","goals","energy","pace","budget","ambience","accessible"], additionalProperties: false }, annotations: { readOnlyHint: false, untrustedContentHint: false }, execute(input) { selectSingle("time", String(input.time)); selectSingle("energy", input.energy); selectGoals(input.goals); locationSelect.value = input.origin; nextLocationSelect.value = input.destination; document.querySelector("#pace").value = input.pace; document.querySelector("#budget").value = input.budget; document.querySelector("#ambience").value = input.ambience; document.querySelector("#accessible").checked = input.accessible; if (input.gymFocus) document.querySelector("#gym-focus").value = input.gymFocus; if (input.cambasSubject) document.querySelector("#cambas-subject").value = input.cambasSubject; if (input.alarmMinutes) { document.querySelector("#alarm-minutes").value = input.alarmMinutes; document.querySelector("#alarm-enabled").checked = true; } updateTimeWindow(); const summary = renderPlan(false); if (document.querySelector("#alarm-enabled").checked && summary.plan.some(item => item.goal === "descansar")) scheduleAlarm(summary.preferences.alarmMinutes); return summary; } });
+  context.registerTool({ name: "create_campus_plan", title: "Crear plan personalizado entre clases", description: "Combina hasta cuatro actividades, origen, destino y preferencias; actualiza el plan visible y la ruta de Google Maps.", inputSchema: { type: "object", properties: { time: { type: "integer", enum: [30,60,120,180] }, origin: { type: "string", enum: allLocationNames }, destination: { type: "string", enum: allLocationNames }, goals: { type: "array", minItems: 1, maxItems: 4, uniqueItems: true, items: { type: "string", enum: Object.keys(goalCatalog) } }, energy: { type: "string", enum: ["baja","media","alta"] }, pace: { type: "string", enum: ["tranquilo","equilibrado","intenso"] }, budget: { type: "string", enum: ["cero","bajo","flexible"] }, ambience: { type: "string", enum: ["silencio","indiferente","aire-libre","grupo"] }, accessible: { type: "boolean" }, gymFocus: { type: "string", enum: Object.keys(gymExercises) }, danceStyle: { type: "string", enum: Object.keys(danceStyles) }, cambasSubject: { type: "string", enum: Object.keys(cambasTopics) }, alarmMinutes: { type: "integer", minimum: 5, maximum: 180 } }, required: ["time","origin","destination","goals","energy","pace","budget","ambience","accessible"], additionalProperties: false }, annotations: { readOnlyHint: false, untrustedContentHint: false }, execute(input) { selectSingle("time", String(input.time)); selectSingle("energy", input.energy); selectGoals(input.goals); locationSelect.value = input.origin; nextLocationSelect.value = input.destination; document.querySelector("#pace").value = input.pace; document.querySelector("#budget").value = input.budget; document.querySelector("#ambience").value = input.ambience; document.querySelector("#accessible").checked = input.accessible; if (input.gymFocus) document.querySelector("#gym-focus").value = input.gymFocus; if (input.danceStyle) document.querySelector("#dance-style").value = input.danceStyle; if (input.cambasSubject) document.querySelector("#cambas-subject").value = input.cambasSubject; if (input.alarmMinutes) { document.querySelector("#alarm-minutes").value = input.alarmMinutes; document.querySelector("#alarm-enabled").checked = true; } updateTimeWindow(); const summary = renderPlan(false); if (document.querySelector("#alarm-enabled").checked && summary.plan.some(item => item.goal === "descansar")) scheduleAlarm(summary.preferences.alarmMinutes); return summary; } });
   context.registerTool({ name: "search_campus_places", title: "Buscar lugares del campus", description: "Busca edificios, servicios y espacios de bienestar en el directorio de Icesi incluido en la app.", inputSchema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false }, annotations: { readOnlyHint: true, untrustedContentHint: false }, execute({query}) { const q = query.trim().toLocaleLowerCase("es"); return campusPlaces.filter(place => `${place.name} ${place.text}`.toLocaleLowerCase("es").includes(q)).slice(0,10); } });
   context.registerTool({ name: "read_current_campus_plan", title: "Leer plan actual", description: "Devuelve las preferencias y los pasos del plan visible actualmente.", inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, untrustedContentHint: false }, execute() { return renderPlan(false); } });
 }

@@ -78,10 +78,27 @@
 
           <fieldset id="activity-details" hidden>
             <legend><span>04</span> Detalles de tus actividades</legend>
-            <label class="select-wrap" id="gym-focus-wrap" hidden><span class="select-label">¿Qué quieres trabajar en el gym?</span><select id="gym-focus"><option value="full">Cuerpo completo</option><option value="pierna">Pierna</option><option value="brazo">Brazo</option><option value="espalda">Espalda</option><option value="cardio">Cardio</option></select></label>
-            <label class="select-wrap" id="cambas-subject-wrap" hidden><span class="select-label">¿En qué necesitas ayuda en CAMBAS?</span><select id="cambas-subject"><option value="matematicas">Matemáticas</option><option value="logica">Lógica</option><option value="estadistica">Estadística</option><option value="calculo">Cálculo</option></select></label>
-            <label class="check-row" id="alarm-toggle-wrap" hidden><input id="alarm-enabled" type="checkbox" /> Ponme una alarma para despertar en Sala Boreal</label>
-            <label class="note-label" id="alarm-minutes-wrap" hidden>¿En cuántos minutos quieres la alarma?<input id="alarm-minutes" type="number" min="5" max="180" step="5" value="20" /></label>
+
+            <div class="activity-detail" id="entrenar-detail" hidden>
+              <span class="activity-detail-title"><span aria-hidden="true">↗</span> Entrenar</span>
+              <label class="select-wrap"><span class="select-label">¿Qué quieres trabajar en el gym?</span><select id="gym-focus"><option value="full">Cuerpo completo</option><option value="pierna">Pierna</option><option value="brazo">Brazo</option><option value="espalda">Espalda</option><option value="cardio">Cardio</option></select></label>
+            </div>
+
+            <div class="activity-detail" id="bailar-detail" hidden>
+              <span class="activity-detail-title"><span aria-hidden="true">💃</span> Bailar</span>
+              <label class="select-wrap"><span class="select-label">¿Qué tipo de baile quieres hacer?</span><select id="dance-style"><option value="salsa">Salsa caleña</option><option value="urbano">Urbano / reggaetón</option><option value="bachata">Bachata</option><option value="folclor">Folclor colombiano</option><option value="zumba">Zumba / cardio dance</option></select></label>
+            </div>
+
+            <div class="activity-detail" id="cambas-detail" hidden>
+              <span class="activity-detail-title"><span aria-hidden="true">✦</span> Pedir ayuda en CAMBAS</span>
+              <label class="select-wrap"><span class="select-label">¿En qué necesitas ayuda?</span><select id="cambas-subject"><option value="matematicas">Matemáticas</option><option value="calculo">Cálculo</option><option value="algebra">Álgebra lineal</option><option value="estadistica">Estadística</option></select></label>
+            </div>
+
+            <div class="activity-detail" id="descansar-detail" hidden>
+              <span class="activity-detail-title"><span aria-hidden="true">☁️</span> Descansar</span>
+              <label class="check-row" id="alarm-toggle-wrap"><input id="alarm-enabled" type="checkbox" /> Ponme una alarma para despertar en Sala Boreal</label>
+              <label class="note-label" id="alarm-minutes-wrap" hidden>¿En cuántos minutos quieres la alarma?<input id="alarm-minutes" type="number" min="5" max="180" step="5" value="20" /></label>
+            </div>
           </fieldset>
 
           <fieldset>
