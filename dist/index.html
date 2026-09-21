@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#062d4d" />
+    <meta name="description" content="Entre Clase recomienda planes útiles dentro del campus Icesi según tu tiempo, ubicación, necesidad y energía." />
+    <title>Entre Clase · Universidad Icesi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="./assets/entre-clase-icon.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#inicio" aria-label="Entre Clase, inicio">
+        <img class="brand-logo" src="./assets/entre-clase-logo.png" alt="Entre Clase · Tu tiempo, más Icesi" />
+      </a>
+      <nav aria-label="Navegación principal">
+        <a href="#mapa">Mapa</a>
+        <a href="#lugares">Lugares</a>
+        <a href="#cambas">CAMBAS</a>
+        <button class="guide-link" id="open-guide" type="button">¿Cómo funciona?</button>
+      </nav>
+    </header>
+
+    <main id="inicio">
+      <section class="planner-shell" aria-labelledby="planner-title">
+        <div class="intro">
+          <p class="eyebrow">Tu próximo hueco</p>
+          <h1 id="planner-title">Tu hueco, a tu manera.</h1>
+          <p>Combina varias metas, elige tu ritmo y dinos dónde debe terminar el plan. Nosotros organizamos el tiempo y los traslados.</p>
+          <div class="time-window" aria-hidden="true">
+            <span id="clock-now">Ahora</span>
+            <span class="line"></span>
+            <span id="clock-end">+ 2 horas</span>
+          </div>
+        </div>
+
+        <form class="planner" id="planner-form">
+          <fieldset>
+            <legend><span>01</span> ¿Cuánto tiempo tienes?</legend>
+            <div class="choice-grid time-options" data-group="time">
+              <button type="button" data-value="30">30 min</button>
+              <button type="button" data-value="60">1 hora</button>
+              <button class="selected" type="button" data-value="120">2 horas</button>
+              <button type="button" data-value="180">3+ horas</button>
+              <button type="button" data-value="custom">Personalizado</button>
+            </div>
+            <label class="note-label" id="custom-time-wrap" hidden>¿Cuántos minutos exactos tienes?<input id="custom-time" type="number" min="15" max="480" step="5" value="90" /></label>
+          </fieldset>
+
+          <fieldset>
+            <legend><span>02</span> ¿De dónde sales y dónde terminas?</legend>
+            <div class="two-select-grid">
+              <label class="select-wrap"><span class="select-label">Estoy en</span><select id="location" name="location"></select></label>
+              <label class="select-wrap"><span class="select-label">Mi próxima clase es en</span><select id="next-location" name="next-location"></select></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend><span>03</span> ¿Qué quieres hacer? <small id="goal-count">2 seleccionadas</small></legend>
+            <div class="choice-grid need-options multi" data-multigroup="needs">
+              <button class="selected" type="button" aria-pressed="true" data-value="comer"><span>🥪</span>Comer</button>
+              <button class="selected" type="button" aria-pressed="true" data-value="estudiar"><span>📚</span>Estudiar</button>
+              <button type="button" aria-pressed="false" data-value="descansar"><span>☁️</span>Descansar</button>
+              <button type="button" aria-pressed="false" data-value="ayuda"><span>✦</span>Pedir ayuda</button>
+              <button type="button" aria-pressed="false" data-value="entrenar"><span>↗</span>Entrenar</button>
+              <button type="button" aria-pressed="false" data-value="bailar"><span>💃</span>Bailar</button>
+              <button type="button" aria-pressed="false" data-value="meditar"><span>🧘</span>Meditar</button>
+              <button type="button" aria-pressed="false" data-value="crear"><span>🎨</span>Crear</button>
+              <button type="button" aria-pressed="false" data-value="socializar"><span>☺</span>Ver amigos</button>
+              <button type="button" aria-pressed="false" data-value="imprimir"><span>▤</span>Imprimir</button>
+              <button type="button" aria-pressed="false" data-value="diligencia"><span>✓</span>Hacer una vuelta</button>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend><span>04</span> ¿Cómo está tu energía?</legend>
+            <div class="energy-row" data-group="energy">
+              <button type="button" data-value="baja">Baja</button>
+              <button class="selected" type="button" data-value="media">Media</button>
+              <button type="button" data-value="alta">Alta</button>
+            </div>
+          </fieldset>
+
+          <fieldset class="preference-box">
+            <legend><span>05</span> Personaliza el plan</legend>
+            <div class="preference-grid">
+              <label>Ritmo<select id="pace"><option value="tranquilo">Tranquilo</option><option value="equilibrado" selected>Equilibrado</option><option value="intenso">Aprovechar al máximo</option></select></label>
+              <label>Presupuesto<select id="budget"><option value="cero">Sin gastar</option><option value="bajo" selected>Hasta $15.000</option><option value="flexible">Flexible</option></select></label>
+              <label>Ambiente<select id="ambience"><option value="silencio">Silencioso</option><option value="indiferente" selected>Me da igual</option><option value="aire-libre">Al aire libre</option><option value="grupo">Para trabajar en grupo</option></select></label>
+            </div>
+            <label class="check-row"><input id="accessible" type="checkbox" /> Prefiero rutas accesibles y sin escaleras</label>
+            <label class="note-label">Algo más que debamos tener en cuenta<input id="custom-note" maxlength="80" placeholder="Ej. tengo parcial de cálculo, quiero café, debo imprimir…" /></label>
+          </fieldset>
+
+          <button class="primary-action" type="submit">Armar mi plan <span>→</span></button>
+        </form>
+      </section>
+
+      <section class="result-section" id="resultado" aria-live="polite" aria-labelledby="result-title">
+        <div class="result-heading">
+          <div>
+            <p class="eyebrow">Recomendado para ti</p>
+            <h2 id="result-title">Un plan claro para tus próximas 2 horas</h2>
+          </div>
+          <button class="secondary-action" id="alternate-plan" type="button">Ver otra opción</button>
+        </div>
+
+        <div class="result-grid">
+          <article class="plan-card">
+            <div class="plan-summary">
+              <span class="summary-icon" id="summary-icon">✦</span>
+              <div>
+                <span class="meta">PLAN PRINCIPAL</span>
+                <h3 id="plan-name">Central + Biblioteca + CAMBAS</h3>
+                <p id="plan-reason">Come algo, avanza y resuelve tus dudas sin llegar tarde a clase.</p>
+                <div class="profile-tags" id="plan-profile"></div>
+              </div>
+            </div>
+            <ol class="timeline" id="timeline"></ol>
+            <div class="plan-footer">
+              <span id="total-time">120 min en total</span>
+              <span id="return-buffer">Incluye 15 min para volver</span>
+            </div>
+          </article>
+
+          <article class="map-card" id="mapa" aria-labelledby="map-title">
+            <div class="map-top">
+              <div>
+                <span class="meta">RUTA EN CAMPUS</span>
+                <h3 id="map-title">Desde Edificio L</h3>
+              </div>
+              <span class="walk-time" id="walk-time">12 min caminando</span>
+            </div>
+            <div class="google-map-wrap">
+              <iframe id="google-map" title="Universidad Icesi en Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=Universidad+Icesi,+Cali,+Colombia&amp;output=embed"></iframe>
+              <span class="google-badge">Google Maps</span>
+            </div>
+            <a class="google-action" id="google-route" href="https://www.google.com/maps/dir/?api=1&amp;destination=Universidad+Icesi,+Cali,+Colombia&amp;travelmode=walking" target="_blank" rel="noreferrer">Abrir esta ruta en Google Maps <span>↗</span></a>
+            <button class="map-action" id="route-toggle" type="button">Ver indicaciones paso a paso <span>↗</span></button>
+            <div class="directions" id="directions" hidden>
+              <p><strong>1.</strong> Sal de Edificio L hacia Central.</p>
+              <p><strong>2.</strong> Continúa por el corredor principal hasta Biblioteca.</p>
+              <p><strong>3.</strong> Ve al salón 101A para llegar a CAMBAS.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="places-section" id="lugares" aria-labelledby="places-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Campus Icesi</p>
+            <h2 id="places-title">Un lugar para cada necesidad.</h2>
+          </div>
+          <p>Directorio elaborado con el mapa y la información institucional de Icesi.</p>
+        </div>
+        <div class="directory-tools">
+          <label class="directory-search"><span class="sr-only">Buscar edificio o servicio</span><input id="place-search" type="search" placeholder="Buscar edificio, servicio o actividad…" /></label>
+          <div class="filter-row" id="place-filters" aria-label="Filtrar ubicaciones">
+            <button class="active" type="button" data-filter="todos">Todos</button>
+            <button type="button" data-filter="academico">Académicos</button>
+            <button type="button" data-filter="servicio">Servicios</button>
+            <button type="button" data-filter="bienestar">Bienestar</button>
+          </div>
+          <span class="place-count" id="place-count"></span>
+        </div>
+        <div class="place-grid" id="place-grid"></div>
+        <p class="source-note">Fuentes: <a href="https://www.icesi.edu.co/la-universidad/" target="_blank" rel="noreferrer">información del campus Icesi</a> y <a href="https://www.icesi.edu.co/wp-content/uploads/2025/09/Rutas-de-evacuacion-2025-2.pdf" target="_blank" rel="noreferrer">plano institucional 2025</a>. Google Maps puede no identificar cada edificio interior por separado.</p>
+      </section>
+
+      <section class="cambas-section" id="cambas" aria-labelledby="cambas-title">
+        <div class="cambas-copy">
+          <span class="tag">APOYO ACADÉMICO</span>
+          <h2 id="cambas-title">¿Una duda no te deja avanzar?</h2>
+          <p>CAMBAS es el punto de apoyo para matemáticas y estadística. Úsalo para preparar parciales, resolver talleres o trabajar con acompañamiento de monitores.</p>
+          <dl>
+            <div><dt>Ubicación</dt><dd>Salón 101A</dd></div>
+            <div><dt>Horario</dt><dd>Lunes a viernes · 9:00 a.m. – 6:00 p.m.</dd></div>
+          </dl>
+          <button class="light-action" id="plan-cambas" type="button">Crear un plan con CAMBAS <span>→</span></button>
+        </div>
+        <div class="cambas-graphic" aria-hidden="true">
+          <span class="formula formula-a">∫ f(x)dx</span>
+          <span class="formula formula-b">σ²</span>
+          <span class="formula formula-c">y = mx + b</span>
+          <div class="room-card">
+            <span>CAMBAS</span>
+            <strong>101A</strong>
+            <small>Tu siguiente paso puede ser una pregunta.</small>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="brand"><img class="brand-logo footer-logo" src="./assets/entre-clase-logo.png" alt="Entre Clase · Tu tiempo, más Icesi" /></div>
+      <p>Una herramienta para aprovechar mejor la vida entre clases.</p>
+      <span>Universidad Icesi</span>
+    </footer>
+
+    <dialog id="guide-dialog">
+      <button class="dialog-close" id="close-guide" type="button" aria-label="Cerrar guía">×</button>
+      <p class="eyebrow">Guía rápida</p>
+      <h2>Tu plan en menos de 30 segundos.</h2>
+      <ol class="guide-steps">
+        <li><span>1</span><div><strong>Elige tu tiempo</strong><p>Desde 30 minutos hasta un hueco largo.</p></div></li>
+        <li><span>2</span><div><strong>Ubícate</strong><p>Selecciona el punto del campus donde estás.</p></div></li>
+        <li><span>3</span><div><strong>Combina tus objetivos</strong><p>Elige hasta cuatro actividades y añade tus preferencias.</p></div></li>
+        <li><span>4</span><div><strong>Sigue el plan</strong><p>Te damos tiempos, lugares y una ruta conectada con Google Maps.</p></div></li>
+      </ol>
+      <button class="primary-action" id="start-planning" type="button">Entendido, crear mi plan</button>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>
