@@ -79,6 +79,10 @@ select { width: 100%; height: 48px; padding: 0 44px 0 15px; color: var(--ink); b
 .timeline li::before { display: grid; width: 30px; height: 30px; place-items: center; color: white; background: var(--ink); border-radius: 50%; font-size: 12px; font-weight: 800; counter-increment: steps; content: counter(steps); }
 .timeline time { padding-top: 5px; color: var(--green); font-size: 13px; font-weight: 800; }
 .timeline strong { display: block; }.timeline p { margin: 3px 0 0; color: var(--muted); font-size: 14px; }
+.timeline .routine-summary { margin: 4px 0 8px; color: var(--green); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; }
+.timeline .routine-steps { display: grid; gap: 6px; padding: 0; margin: 0; list-style: none; counter-reset: routine-step; }
+.timeline .routine-steps li { position: relative; padding: 7px 10px 7px 34px; color: var(--ink-2); background: var(--ice); border-radius: 10px; font-size: 13px; line-height: 1.4; }
+.timeline .routine-steps li::before { position: absolute; top: 7px; left: 10px; display: grid; width: 18px; height: 18px; place-items: center; color: white; background: var(--green); border-radius: 50%; font-size: 10px; font-weight: 800; counter-increment: routine-step; content: counter(routine-step); }
 .plan-footer { display: flex; justify-content: space-between; gap: 18px; padding-top: 20px; color: var(--muted); font-size: 13px; font-weight: 700; }
 .map-card { display: flex; flex-direction: column; background: var(--ice); }
 .map-top { display: flex; align-items: start; justify-content: space-between; gap: 20px; }
