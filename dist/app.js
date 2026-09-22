@@ -1289,6 +1289,28 @@ function registerWebMCP() {
 }
 
 /* ---------------------------------------------------------------------- */
+/* Decoración interactiva del encabezado (parallax con el mouse)           */
+/* ---------------------------------------------------------------------- */
+function initHeroParallax() {
+  const decor = $("#intro-decor");
+  const shell = $(".planner-shell");
+  if (!decor || !shell || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const icon = decor.querySelector(".decor-icon");
+  const chips = [...decor.querySelectorAll(".decor-chip")];
+  shell.addEventListener("mousemove", event => {
+    const rect = shell.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
+    icon.style.transform = `translate(calc(-50% + ${x * -22}px), calc(-50% + ${y * -22}px))`;
+    chips.forEach((chip, i) => { const depth = 12 + i * 5; chip.style.transform = `translate(${(x * depth).toFixed(1)}px, ${(y * depth).toFixed(1)}px)`; });
+  });
+  shell.addEventListener("mouseleave", () => {
+    icon.style.transform = "";
+    chips.forEach(chip => { chip.style.transform = ""; });
+  });
+}
+
+/* ---------------------------------------------------------------------- */
 /* Inicialización                                                           */
 /* ---------------------------------------------------------------------- */
 populateLocations();
@@ -1302,4 +1324,5 @@ refreshValidation();
 renderDirectory();
 renderHistoryList();
 restoreSession();
+initHeroParallax();
 registerWebMCP();

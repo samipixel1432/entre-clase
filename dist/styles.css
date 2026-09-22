@@ -36,7 +36,27 @@ nav a:hover { color: var(--green); }
 
 main { overflow: hidden; }
 .planner-shell { display: grid; grid-template-columns: .86fr 1.14fr; gap: clamp(40px, 7vw, 110px); min-height: 700px; padding: 70px max(5vw, 24px) 90px; background: radial-gradient(circle at 2% 2%, #d9f2e9 0, transparent 30%), var(--white); }
-.intro { display: flex; flex-direction: column; justify-content: center; max-width: 540px; }
+.intro { position: relative; display: flex; flex-direction: column; justify-content: center; max-width: 540px; }
+.intro > *:not(.intro-decor) { position: relative; z-index: 1; }
+
+.intro-decor { position: absolute; inset: -80px -40px; z-index: 0; overflow: visible; pointer-events: none; }
+.decor-icon { position: absolute; top: 50%; left: 68%; width: min(360px, 46vw); opacity: .07; filter: grayscale(1); transform: translate(-50%, -50%); transition: transform .35s ease; will-change: transform; }
+.decor-chip {
+  position: absolute; display: grid; place-items: center; width: 54px; height: 54px;
+  background: white; border: 1px solid var(--line); border-radius: 16px; font-size: 22px;
+  box-shadow: var(--shadow); pointer-events: auto; cursor: default;
+  translate: 0 0; transition: transform .3s ease, box-shadow .2s ease; will-change: transform;
+  animation: chip-float 5s ease-in-out infinite;
+}
+.decor-chip:hover { transform: scale(1.16) !important; box-shadow: 0 14px 30px rgba(6,45,77,.2); z-index: 2; }
+.chip-1 { top: 6%; left: 58%; animation-delay: 0s; }
+.chip-2 { top: 24%; left: 88%; animation-delay: .8s; }
+.chip-3 { top: 56%; left: 74%; animation-delay: 1.6s; }
+.chip-4 { top: 76%; left: 94%; animation-delay: 2.4s; }
+.chip-5 { top: 46%; left: 50%; animation-delay: 3.2s; }
+@keyframes chip-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -10px; } }
+
+@media (max-width: 980px) { .intro-decor { display: none; } }
 .eyebrow, .meta { margin: 0 0 10px; color: var(--green); font-size: 12px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
 h1, h2, h3 { margin: 0; font-family: "Manrope", sans-serif; line-height: 1.08; letter-spacing: -.04em; }
 h1 { max-width: 600px; font-size: clamp(40px, 6vw, 84px); }
