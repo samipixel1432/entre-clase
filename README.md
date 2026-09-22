@@ -1,6 +1,6 @@
 # Entre Clase
 
-Aplicación web para organizar los huecos entre clases en la Universidad Icesi. Permite combinar actividades, elegir origen y destino dentro del campus, personalizar ritmo, presupuesto, ambiente y accesibilidad, y abrir el recorrido sugerido en Google Maps.
+Aplicación web para organizar tu tiempo libre entre clases en la Universidad Icesi. Permite combinar actividades, elegir origen y destino dentro del campus, personalizar ritmo, presupuesto, ambiente y accesibilidad, y abrir el recorrido sugerido en Google Maps.
 
 ## Funciones
 

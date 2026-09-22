@@ -387,7 +387,8 @@ function buildPlan() {
   const activityPlaces = items.filter(item => !["move", "return"].includes(item.goal)).map(item => item.place);
   const omitted = state.goals.size - chosenGoals.length;
   const activityLabel = chosenGoals.length === 1 ? "actividad organizada" : "actividades organizadas";
-  const reason = [`${chosenGoals.length} ${activityLabel} a ritmo ${preferences.pace}.`, preferences.note ? `También tuvimos en cuenta: “${preferences.note}”.` : "", omitted ? `${omitted} actividad quedó para otro hueco por falta de tiempo.` : ""].filter(Boolean).join(" ");
+  const omittedLabel = omitted === 1 ? "actividad quedó" : "actividades quedaron";
+  const reason = [`${chosenGoals.length} ${activityLabel} a ritmo ${preferences.pace}.`, preferences.note ? `También tuvimos en cuenta: “${preferences.note}”.` : "", omitted ? `${omitted} ${omittedLabel} para tu próximo tiempo libre.` : ""].filter(Boolean).join(" ");
   return { origin, destination, buffer, items, omitted, preferences, name: activityPlaces.join(" + "), reason, icon: goalCatalog[chosenGoals[0]].icon };
 }
 
