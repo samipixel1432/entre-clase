@@ -36,7 +36,7 @@ nav a:hover { color: var(--green); }
 
 main { overflow: hidden; }
 .planner-shell { display: grid; grid-template-columns: .86fr 1.14fr; gap: clamp(40px, 7vw, 110px); min-height: 700px; padding: 70px max(5vw, 24px) 90px; background: radial-gradient(circle at 2% 2%, #d9f2e9 0, transparent 30%), var(--white); }
-.intro { position: relative; display: flex; flex-direction: column; justify-content: center; max-width: 540px; }
+.intro { position: relative; display: flex; flex-direction: column; justify-content: flex-start; padding-top: clamp(16px, 5vw, 64px); max-width: 540px; }
 .intro > * { position: relative; z-index: 1; }
 
 .intro-glow {
@@ -46,6 +46,9 @@ main { overflow: hidden; }
   animation: glow-drift 10s ease-in-out infinite;
 }
 @keyframes glow-drift { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-46%, -54%) scale(1.08); } }
+
+.intro-route { width: min(260px, 60vw); margin-bottom: 22px; opacity: .85; transform: perspective(600px); transition: transform .25s ease; will-change: transform; }
+.intro-route svg { display: block; width: 100%; height: auto; }
 
 .intro-badges { display: flex; gap: 10px; margin-bottom: 24px; }
 .badge-pill {
@@ -340,7 +343,7 @@ legend small { float: right; margin-top: 6px; color: var(--green); font-family: 
 .budget-active { display: grid; gap: 16px; }
 
 .expense-summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.expense-stat { padding: 16px; background: var(--ice); border-radius: 16px; text-align: center; }
+.expense-stat { padding: 16px; background: var(--ice); border-radius: 16px; text-align: center; color: var(--ink); }
 .expense-stat span { display: block; margin-bottom: 6px; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
 .expense-stat strong { display: block; font-family: "Manrope", sans-serif; font-size: 22px; transition: color .2s ease; }
 .expense-stat strong.pulse { animation: stat-pulse .5s ease; }

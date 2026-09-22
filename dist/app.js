@@ -1294,15 +1294,20 @@ function registerWebMCP() {
 /* ---------------------------------------------------------------------- */
 function initHeroParallax() {
   const glow = $(".intro-glow");
+  const route = $("#intro-route");
   const shell = $(".planner-shell");
-  if (!glow || !shell || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (!shell || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   shell.addEventListener("mousemove", event => {
     const rect = shell.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width - 0.5;
     const y = (event.clientY - rect.top) / rect.height - 0.5;
-    glow.style.transform = `translate(calc(-50% + ${(x * 30).toFixed(1)}px), calc(-50% + ${(y * 30).toFixed(1)}px))`;
+    if (glow) glow.style.transform = `translate(calc(-50% + ${(x * 30).toFixed(1)}px), calc(-50% + ${(y * 30).toFixed(1)}px))`;
+    if (route) route.style.transform = `perspective(600px) rotateX(${(y * -10).toFixed(1)}deg) rotateY(${(x * 14).toFixed(1)}deg)`;
   });
-  shell.addEventListener("mouseleave", () => { glow.style.transform = ""; });
+  shell.addEventListener("mouseleave", () => {
+    if (glow) glow.style.transform = "";
+    if (route) route.style.transform = "";
+  });
 }
 
 /* ---------------------------------------------------------------------- */
