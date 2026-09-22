@@ -1289,25 +1289,20 @@ function registerWebMCP() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* Decoración interactiva del encabezado (parallax con el mouse)           */
+/* Decoración interactiva del encabezado: el resplandor sigue al mouse      */
+/* (es un desenfoque sin bordes, así que nunca puede tapar el texto)        */
 /* ---------------------------------------------------------------------- */
 function initHeroParallax() {
-  const decor = $("#intro-decor");
+  const glow = $(".intro-glow");
   const shell = $(".planner-shell");
-  if (!decor || !shell || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const icon = decor.querySelector(".decor-icon");
-  const chips = [...decor.querySelectorAll(".decor-chip")];
+  if (!glow || !shell || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   shell.addEventListener("mousemove", event => {
     const rect = shell.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width - 0.5;
     const y = (event.clientY - rect.top) / rect.height - 0.5;
-    icon.style.transform = `translate(calc(-50% + ${x * -22}px), calc(-50% + ${y * -22}px))`;
-    chips.forEach((chip, i) => { const depth = 12 + i * 5; chip.style.transform = `translate(${(x * depth).toFixed(1)}px, ${(y * depth).toFixed(1)}px)`; });
+    glow.style.transform = `translate(calc(-50% + ${(x * 30).toFixed(1)}px), calc(-50% + ${(y * 30).toFixed(1)}px))`;
   });
-  shell.addEventListener("mouseleave", () => {
-    icon.style.transform = "";
-    chips.forEach(chip => { chip.style.transform = ""; });
-  });
+  shell.addEventListener("mouseleave", () => { glow.style.transform = ""; });
 }
 
 /* ---------------------------------------------------------------------- */
