@@ -41,14 +41,14 @@
         <form class="planner" id="planner-form">
           <fieldset>
             <legend><span>01</span> ¿Cuánto tiempo tienes?</legend>
-            <div class="choice-grid time-options" data-group="time">
-              <button type="button" data-value="30">30 min</button>
-              <button type="button" data-value="60">1 hora</button>
-              <button class="selected" type="button" data-value="120">2 horas</button>
-              <button type="button" data-value="180">3+ horas</button>
-              <button type="button" data-value="custom">Personalizado</button>
+            <div class="choice-grid time-options" data-group="time" role="group" aria-label="¿Cuánto tiempo tienes?">
+              <button type="button" aria-pressed="false" data-value="30">30 min</button>
+              <button type="button" aria-pressed="false" data-value="60">1 hora</button>
+              <button class="selected" type="button" aria-pressed="true" data-value="120">2 horas</button>
+              <button type="button" aria-pressed="false" data-value="180">3+ horas</button>
+              <button type="button" aria-pressed="false" data-value="custom">Personalizado</button>
             </div>
-            <label class="note-label" id="custom-time-wrap" hidden>¿Cuántos minutos exactos tienes?<input id="custom-time" type="number" min="15" max="480" step="5" value="90" /></label>
+            <label class="note-label" id="custom-time-wrap" hidden>¿Cuántos minutos exactos tienes?<input id="custom-time" type="number" min="30" max="480" step="5" value="90" /></label>
           </fieldset>
 
           <fieldset>
@@ -76,7 +76,7 @@
             </div>
           </fieldset>
 
-          <fieldset id="activity-details" hidden>
+          <fieldset id="activity-details" hidden aria-live="polite">
             <legend><span>04</span> Detalles de tus actividades</legend>
 
             <div class="activity-detail" id="entrenar-detail" hidden>
@@ -103,10 +103,10 @@
 
           <fieldset>
             <legend><span>05</span> ¿Cómo está tu energía?</legend>
-            <div class="energy-row" data-group="energy">
-              <button type="button" data-value="baja">Baja</button>
-              <button class="selected" type="button" data-value="media">Media</button>
-              <button type="button" data-value="alta">Alta</button>
+            <div class="energy-row" data-group="energy" role="group" aria-label="¿Cómo está tu energía?">
+              <button type="button" aria-pressed="false" data-value="baja">Baja</button>
+              <button class="selected" type="button" aria-pressed="true" data-value="media">Media</button>
+              <button type="button" aria-pressed="false" data-value="alta">Alta</button>
             </div>
           </fieldset>
 

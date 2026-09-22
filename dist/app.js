@@ -1,35 +1,34 @@
 const state = { time: 120, goals: new Set(["comer", "estudiar"]), energy: "media", alternate: false, placeFilter: "todos" };
 
 const campusPlaces = [
-  { name: "Edificio A · Tecnoquímicas", short: "Edificio A", category: "academico", icon: "A", text: "Facultad de Negocios: laboratorio financiero y Marketing Zone." },
+  { name: "Edificio A · Tecnoquímicas", short: "Edificio A", category: "academico", icon: "A", text: "Apoyo financiero, contabilidad, MBA y Marketing Zone." },
   { name: "Edificio B", short: "Edificio B", category: "academico", icon: "B", text: "Pregrados, posgrados, departamentos y centros de investigación de Negocios." },
-  { name: "Edificio C · Mayagüez", short: "Edificio C", category: "academico", icon: "C", text: "Salas de cómputo, INNLAB, DDB Lab, HUB y espacios de posgrado." },
-  { name: "Edificio D", short: "Edificio D", category: "academico", icon: "D", text: "Salones de clase y espacios de conexión académica." },
+  { name: "Edificio C · Mayagüez", short: "Edificio C", category: "academico", icon: "C", text: "Centro de Desarrollo del Espíritu Empresarial, Start-Up Café, salas de cómputo y apoyo de inglés." },
+  { name: "Edificio D", short: "Edificio D", category: "academico", icon: "D", text: "Tienda Icesi, Auditorio Varela y laboratorio de ciencias cognitiva." },
   { name: "Edificio E", short: "Edificio E", category: "academico", icon: "E", text: "33 salones, auditorio, sala de audiencias y aulas grupales." },
-  { name: "Edificio F", short: "Edificio F", category: "academico", icon: "F", text: "Edificio académico con punto de impresión en el primer piso." },
-  { name: "Edificio G", short: "Edificio G", category: "academico", icon: "G", text: "Espacios académicos y punto de impresión en el primer piso." },
-  { name: "Edificio H · Taller de Diseño", short: "Taller de Diseño", category: "academico", icon: "H", text: "Talleres y espacios para procesos de diseño y creación." },
+  { name: "Edificio F", short: "Edificio F", category: "academico", icon: "F", text: "Salones de diseño y un punto para imprimir en el primer piso." },
+  { name: "Edificio G", short: "Edificio G", category: "academico", icon: "G", text: "Coliseo 2, laboratorio de innovación y un punto para imprimir en el primer piso." },
+  { name: "Edificio H · Taller de Diseño", short: "Taller de Diseño", category: "academico", icon: "H", text: "Talleres y espacios para crear, diseñar y prototipar." },
   { name: "Edificio J", short: "Edificio J", category: "servicio", icon: "J", text: "Planta física, servicios generales, compras y mantenimiento." },
-  { name: "Edificio K", short: "Edificio K", category: "servicio", icon: "K", text: "Planeación académica y gestión de reservas de espacios." },
+  { name: "Edificio K", short: "Edificio K", category: "servicio", icon: "K", text: "Trámites y vueltas académicas, planeación y reservas de espacios." },
   { name: "Edificio L", short: "Edificio L", category: "academico", icon: "L", text: "Laboratorios de ciencias, salud, química, biología e ingeniería." },
-  { name: "Edificio M", short: "Edificio M", category: "academico", icon: "M", text: "Espacios académicos, aulas y punto de impresión." },
-  { name: "Edificio N · CADI", short: "Edificio N / CADI", category: "bienestar", icon: "N", text: "Centro Artístico y Deportivo, piscina y actividades de bienestar." },
-  { name: "Biblioteca", short: "Biblioteca", category: "academico", icon: "⌁", text: "Lectura, estudio individual y grupal, recursos e impresión." },
-  { name: "Cafetería Principal", short: "Cafetería Principal", category: "servicio", icon: "☕", text: "Comidas, bebidas y pausas entre clases." },
-  { name: "Bienestar Universitario", short: "Bienestar Universitario", category: "bienestar", icon: "♥", text: "Servicios y acompañamiento para la vida universitaria." },
+  { name: "Edificio M", short: "Edificio M", category: "academico", icon: "M", text: "Estudios de grabación, laboratorios de redes, software e instrumentos musicales." },
+  { name: "Edificio N · Planta Piloto", short: "Edificio N", category: "academico", icon: "N", text: "Laboratorios de bioprocesos, química, automatización, fluidos y planta piloto de ingeniería." },
+  { name: "Biblioteca", short: "Biblioteca", category: "academico", icon: "⌁", text: "Un lugar para estudiar solo o en grupo, y para imprimir tus documentos." },
+  { name: "Cafetería Principal", short: "Cafetería Principal", category: "servicio", icon: "☕", text: "Comidas, bebidas y un lugar para comer entre clases." },
+  { name: "Bienestar Universitario", short: "Bienestar Universitario", category: "bienestar", icon: "♥", text: "Servicios y acompañamiento para la vida universitaria, en Edificio G e I." },
   { name: "Auditorios", short: "Auditorios", category: "academico", icon: "◉", text: "Charlas, eventos académicos y actividades institucionales." },
   { name: "CIDEIM", short: "CIDEIM", category: "academico", icon: "⌬", text: "Investigación científica y laboratorios especializados." },
   { name: "Bioterio", short: "Bioterio", category: "academico", icon: "◌", text: "Instalación de apoyo para investigación en ciencias de la vida." },
-  { name: "Laboratorio de Ingeniería y Planta Piloto", short: "Planta Piloto", category: "academico", icon: "⚙", text: "Prácticas, prototipado y procesos experimentales de ingeniería." },
   { name: "Consultorio Jurídico", short: "Consultorio Jurídico", category: "servicio", icon: "§", text: "Atención y práctica jurídica de la Universidad." },
-  { name: "Gimnasio", short: "Gimnasio / CADI", category: "bienestar", icon: "↗", text: "Entrenamiento, actividad física y pausas activas." },
+  { name: "CADI", short: "Gimnasio / CADI", category: "bienestar", icon: "↗", text: "Centro Artístico y Deportivo: un lugar para entrenar, nadar y cuidar tu bienestar." },
   { name: "Casa Rocha", short: "Casa Rocha", category: "servicio", icon: "⌂", text: "Ubicación institucional identificada en el plano del campus." },
   { name: "Casa Orejuela", short: "Casa Orejuela", category: "servicio", icon: "⌂", text: "Ubicación institucional identificada en el plano del campus." },
   { name: "Casa Malla", short: "Casa Malla", category: "servicio", icon: "⌂", text: "Ubicación institucional identificada en el plano del campus." },
   { name: "Porterías 1, 2 y 4", short: "Portería 1", category: "servicio", icon: "⌖", text: "Entradas, orientación y control de acceso al campus." },
-  { name: "Plazoleta y canchas", short: "Plazoleta", category: "bienestar", icon: "◎", text: "Encuentro, descanso, caminata y actividades deportivas al aire libre." },
-  { name: "CAMBAS · Salón 101A", short: "CAMBAS 101A", category: "academico", icon: "✦", text: "Apoyo de monitores en matemáticas y estadística." },
-  { name: "Sala Boreal", short: "Sala Boreal", category: "bienestar", icon: "☁", text: "Descanso y recuperación de energía entre clases." }
+  { name: "Plazoleta y canchas", short: "Plazoleta", category: "bienestar", icon: "◎", text: "Encuentro con amigos, descanso, caminata y deporte al aire libre." },
+  { name: "CAMBAS · Salón 101A", short: "CAMBAS 101A", category: "academico", icon: "✦", text: "Pide ayuda a los monitores en matemáticas y estadística." },
+  { name: "Sala Boreal", short: "Sala Boreal", category: "bienestar", icon: "☁", text: "Un espacio para descansar, meditar o bailar y recuperar energía entre clases." }
 ];
 
 const gymExercises = {
@@ -119,16 +118,20 @@ function buildCambasRoutine(preferences) {
   return { summary: `Sesión de ${cambasLabels[key]} en CAMBAS`, steps };
 }
 
+function altPick(condition, primary, secondary, alternate) {
+  return condition !== alternate ? primary : secondary;
+}
+
 const goalCatalog = {
-  comer: { icon: "🥪", label: "Comer", minutes: 25, pick: p => p.budget === "cero" ? "Plazoleta" : "Cafetería Principal", action: p => p.budget === "cero" ? "Come lo que llevaste y toma agua." : "Haz una pausa para comer sin afán." },
-  estudiar: { icon: "📚", label: "Estudiar", minutes: 35, pick: p => p.ambience === "grupo" ? "Edificio E" : "Biblioteca", action: p => p.ambience === "grupo" ? "Avanza con tu equipo en un aula grupal." : "Trabaja una tarea concreta con foco." },
-  descansar: { icon: "☁️", label: "Descansar", minutes: 20, pick: p => p.ambience === "aire-libre" ? "Plazoleta" : "Sala Boreal", action: (p, minutes) => p.alarmEnabled ? `Recuéstate o cierra los ojos; programamos tu alarma para que suene en ${p.alarmMinutes} min.` : "Baja el ritmo y recupera energía." },
+  comer: { icon: "🥪", label: "Comer", minutes: 25, pick: p => altPick(p.budget === "cero", "Plazoleta", "Cafetería Principal", p.alternate), action: p => p.budget === "cero" ? "Come lo que llevaste y toma agua." : "Haz una pausa para comer sin afán." },
+  estudiar: { icon: "📚", label: "Estudiar", minutes: 35, pick: p => altPick(p.ambience === "grupo", "Edificio E", "Biblioteca", p.alternate), action: p => p.ambience === "grupo" ? "Avanza con tu equipo en un aula grupal." : "Trabaja una tarea concreta con foco." },
+  descansar: { icon: "☁️", label: "Descansar", minutes: 20, pick: p => altPick(p.ambience === "aire-libre", "Plazoleta", "Sala Boreal", p.alternate), action: (p, minutes) => p.alarmEnabled ? `Recuéstate o cierra los ojos; programamos tu alarma para que suene en ${p.alarmMinutes} min.` : "Baja el ritmo y recupera energía." },
   ayuda: { icon: "✦", label: "Pedir ayuda", minutes: 35, pick: () => "CAMBAS 101A", action: p => buildCambasRoutine(p) },
   entrenar: { icon: "↗", label: "Entrenar", minutes: 35, pick: () => "Gimnasio / CADI", action: (p, minutes) => buildGymRoutine(p, minutes) },
-  bailar: { icon: "💃", label: "Bailar", minutes: 30, pick: p => p.ambience === "aire-libre" ? "Plazoleta" : "Sala Boreal", action: (p, minutes) => buildDanceRoutine(p, minutes) },
+  bailar: { icon: "💃", label: "Bailar", minutes: 30, pick: p => altPick(p.ambience === "aire-libre", "Plazoleta", "Sala Boreal", p.alternate), action: (p, minutes) => buildDanceRoutine(p, minutes) },
   meditar: { icon: "🧘", label: "Meditar", minutes: 20, pick: () => "Sala Boreal", action: (p, minutes) => buildMindfulRoutine(p, minutes) },
   crear: { icon: "🎨", label: "Crear", minutes: 30, pick: () => "Taller de Diseño", action: () => "Dibuja, escribe o experimenta libremente con lo que tengas a mano." },
-  socializar: { icon: "☺", label: "Ver amigos", minutes: 25, pick: p => p.ambience === "aire-libre" ? "Plazoleta" : "Cafetería Principal", action: () => "Conversa y desconéctate un momento." },
+  socializar: { icon: "☺", label: "Ver amigos", minutes: 25, pick: p => altPick(p.ambience === "aire-libre", "Plazoleta", "Cafetería Principal", p.alternate), action: () => "Conversa y desconéctate un momento." },
   imprimir: { icon: "▤", label: "Imprimir", minutes: 15, pick: p => p.alternate ? "Edificio C" : "Biblioteca", action: () => "Imprime y revisa lo necesario para tu clase." },
   diligencia: { icon: "✓", label: "Hacer una vuelta", minutes: 20, pick: p => p.alternate ? "Edificio K" : "Edificio B", action: () => "Resuelve tu trámite o consulta pendiente." }
 };
@@ -261,8 +264,9 @@ const customTimeInput = document.querySelector("#custom-time");
 document.querySelectorAll("[data-group]").forEach(group => group.addEventListener("click", event => {
   const button = event.target.closest("button[data-value]");
   if (!button) return;
-  group.querySelectorAll("button").forEach(item => item.classList.remove("selected"));
+  group.querySelectorAll("button").forEach(item => { item.classList.remove("selected"); item.setAttribute("aria-pressed", "false"); });
   button.classList.add("selected");
+  button.setAttribute("aria-pressed", "true");
   if (group.dataset.group === "time" && button.dataset.value === "custom") {
     customTimeWrap.hidden = false;
     state.time = Number(customTimeInput.value) || 90;
@@ -275,7 +279,7 @@ document.querySelectorAll("[data-group]").forEach(group => group.addEventListene
 }));
 
 customTimeInput.addEventListener("input", () => {
-  const minutes = Math.min(480, Math.max(15, Number(customTimeInput.value) || 15));
+  const minutes = Math.min(480, Math.max(30, Number(customTimeInput.value) || 30));
   state.time = minutes;
   updateTimeWindow();
 });
@@ -382,7 +386,8 @@ function buildPlan() {
   items.push({ minutes: buffer, place: destination, action: preferences.accessible ? "Llega por una ruta accesible y con margen." : "Llega con tiempo a tu siguiente clase.", goal: "return" });
   const activityPlaces = items.filter(item => !["move", "return"].includes(item.goal)).map(item => item.place);
   const omitted = state.goals.size - chosenGoals.length;
-  const reason = [`${chosenGoals.length} ${chosenGoals.length === 1 ? "actividad" : "actividades"} organizadas a ritmo ${preferences.pace}.`, preferences.note ? `También tuvimos en cuenta: “${preferences.note}”.` : "", omitted ? `${omitted} actividad quedó para otro hueco por falta de tiempo.` : ""].filter(Boolean).join(" ");
+  const activityLabel = chosenGoals.length === 1 ? "actividad organizada" : "actividades organizadas";
+  const reason = [`${chosenGoals.length} ${activityLabel} a ritmo ${preferences.pace}.`, preferences.note ? `También tuvimos en cuenta: “${preferences.note}”.` : "", omitted ? `${omitted} actividad quedó para otro hueco por falta de tiempo.` : ""].filter(Boolean).join(" ");
   return { origin, destination, buffer, items, omitted, preferences, name: activityPlaces.join(" + "), reason, icon: goalCatalog[chosenGoals[0]].icon };
 }
 
@@ -422,7 +427,8 @@ function renderPlan(shouldScroll = true) {
   document.querySelector("#plan-name").textContent = plan.name;
   document.querySelector("#plan-reason").textContent = plan.reason;
   document.querySelector("#summary-icon").textContent = plan.icon;
-  document.querySelector("#total-time").textContent = `${state.time} min en total`;
+  const realTotal = plan.items.reduce((sum, item) => sum + item.minutes, 0);
+  document.querySelector("#total-time").textContent = `${realTotal} min en total`;
   document.querySelector("#return-buffer").textContent = `Termina en ${plan.destination}`;
   document.querySelector("#map-title").textContent = `${plan.origin} → ${plan.destination}`;
   document.querySelector("#walk-time").textContent = plan.preferences.accessible ? "Ruta accesible" : "Modo caminando";
@@ -441,7 +447,13 @@ document.querySelector("#planner-form").addEventListener("submit", event => {
   if (restIncluded && summary.preferences.alarmEnabled) { scheduleAlarm(summary.preferences.alarmMinutes); showToast(`Alarma puesta para dentro de ${summary.preferences.alarmMinutes} min.`); }
   else cancelAlarm();
 });
-document.querySelector("#alternate-plan").addEventListener("click", () => { state.alternate = !state.alternate; renderPlan(false); showToast(state.alternate ? "Cambiamos algunos lugares del recorrido." : "Volvimos al plan principal."); });
+document.querySelector("#alternate-plan").addEventListener("click", () => {
+  const previousName = document.querySelector("#plan-name").textContent;
+  state.alternate = !state.alternate;
+  renderPlan(false);
+  const changed = document.querySelector("#plan-name").textContent !== previousName;
+  showToast(changed ? "Cambiamos algunos lugares del recorrido." : "No hay otra opción disponible para estas actividades.");
+});
 document.querySelector("#route-toggle").addEventListener("click", event => { const directions = document.querySelector("#directions"); directions.hidden = !directions.hidden; event.currentTarget.firstChild.textContent = directions.hidden ? "Ver indicaciones paso a paso " : "Ocultar indicaciones "; });
 
 const guide = document.querySelector("#guide-dialog");
@@ -459,7 +471,7 @@ function showToast(message) { const toast = document.querySelector("#toast"); to
 function selectSingle(group, value) {
   const container = document.querySelector(`[data-group="${group}"]`); const button = container?.querySelector(`[data-value="${value}"]`);
   if (!button) throw new Error(`Valor inválido para ${group}`);
-  container.querySelectorAll("button").forEach(item => item.classList.toggle("selected", item === button)); state[group] = group === "time" ? Number(value) : value;
+  container.querySelectorAll("button").forEach(item => { const isSelected = item === button; item.classList.toggle("selected", isSelected); item.setAttribute("aria-pressed", String(isSelected)); }); state[group] = group === "time" ? Number(value) : value;
 }
 
 function selectGoals(goals) {
