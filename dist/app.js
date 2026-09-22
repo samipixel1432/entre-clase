@@ -4,15 +4,24 @@ import { buildPlan } from "./js/planner.js";
 import { formatClock, formatDuration, addMinutes } from "./js/time.js";
 import { haversineMeters, formatDistance } from "./js/geo.js";
 import { CampusMap, buildGoogleMapsUrl } from "./js/map.js";
-import { saveFormState, loadFormState, pushRecentPlan, loadRecentPlans } from "./js/storage.js";
+import { saveFormState, loadFormState, pushRecentPlan, loadRecentPlans, saveSession, loadSession, clearSession, createSessionId } from "./js/storage.js";
+import { EXPENSE_CATEGORIES, GOAL_EXPENSE_CATEGORY, formatCOP, parseCOPInput, createExpense, validateExpenseInput, budgetStatus, progressState, progressMessage, categoryBreakdown, realtimeRecommendations, finalSummary } from "./js/expenses.js";
 
 const state = { time: 120, goals: new Set(["comer", "estudiar"]), energy: "media", alternate: false, placeFilter: "todos", placeSort: "recomendado" };
 const touchedSections = new Set();
 let currentPlan = null;
+let lastPlanInputs = null;
 let stepManualStatus = new Map();
 let departureTimeout = null;
 let planTimerInterval = null;
 let statusInterval = null;
+let session = null;
+let isActiveMode = false;
+let activeTab = "recorrido";
+let editingExpenseId = null;
+let pendingDelete = null;
+let historyHasItems = false;
+let finalSummaryReady = false;
 
 const $ = sel => document.querySelector(sel);
 const $$ = sel => [...document.querySelectorAll(sel)];
@@ -364,16 +373,14 @@ async function generatePlan(shouldScroll = true) {
   window.clearInterval(rotate);
 
   const preferences = getPreferences();
-  const plan = buildPlan({
-    originId: locationSelect.value,
-    destinationId: nextLocationSelect.value,
-    requestedMinutes: state.time,
-    chosenKeys: [...state.goals],
-    preferences,
-    now: new Date()
-  });
+  lastPlanInputs = { originId: locationSelect.value, destinationId: nextLocationSelect.value, requestedMinutes: state.time, chosenKeys: [...state.goals], preferences };
+  const plan = buildPlan({ ...lastPlanInputs, now: new Date() });
   currentPlan = plan;
   stepManualStatus = new Map();
+  session = null;
+  isActiveMode = false;
+  activeTab = "recorrido";
+  finalSummaryReady = false;
 
   $("#result-loading").hidden = true;
   $("#result-content").hidden = false;
@@ -382,6 +389,7 @@ async function generatePlan(shouldScroll = true) {
   $("#result-eyebrow").textContent = "Recomendado para ti";
 
   renderPlan(plan);
+  applyMode();
 
   if (shouldScroll) $("#resultado").scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -517,6 +525,19 @@ function renderTimeline(steps) {
         bring.className = "step-bring";
         bring.textContent = `Lleva contigo: ${activity.bring}`;
         block.append(reason, bring);
+        if (isActiveMode && session?.status === "activo" && GOAL_EXPENSE_CATEGORY[activity.goalKey]) {
+          const expenseBtn = document.createElement("button");
+          expenseBtn.type = "button";
+          expenseBtn.className = "expense-from-activity-btn";
+          expenseBtn.textContent = "💳 Registrar gasto de esta actividad";
+          expenseBtn.addEventListener("click", () => openExpenseModal({
+            place: step.locationName,
+            category: GOAL_EXPENSE_CATEGORY[activity.goalKey],
+            concept: `${activity.label} en ${step.locationName}`,
+            goalKey: activity.goalKey
+          }));
+          block.append(expenseBtn);
+        }
         detail.append(block);
       });
       const mapBtn = document.createElement("button");
@@ -615,10 +636,9 @@ function renderRecommendations(list) {
 
 function renderHistoryList() {
   const history = loadRecentPlans();
-  const card = $("#history-card");
-  if (!history.length) { card.hidden = true; return; }
-  card.hidden = false;
+  historyHasItems = history.length > 0;
   $("#history-list").innerHTML = history.map(h => `<li><strong>${h.name}</strong><span>${h.when}</span></li>`).join("");
+  applyMode();
 }
 
 function startStatusLoop() {
@@ -833,6 +853,379 @@ nextLocationSelect.addEventListener("change", () => { refreshValidation(); persi
 $$("#planner-form select, #planner-form input").forEach(el => el.addEventListener("change", () => { refreshValidation(); persist(); }));
 
 /* ---------------------------------------------------------------------- */
+/* Plan activo: pestañas y control de gastos                               */
+/* ---------------------------------------------------------------------- */
+function applyMode() {
+  $$("[data-tab-panel]").forEach(el => {
+    if (el.id === "final-summary-card") { el.hidden = !finalSummaryReady || (isActiveMode && activeTab !== "resumen"); return; }
+    if (el.id === "history-card") { el.hidden = !historyHasItems || (isActiveMode && activeTab !== "resumen"); return; }
+    if (el.id === "gastos-panel") { el.hidden = !isActiveMode || activeTab !== "gastos"; return; }
+    el.hidden = isActiveMode && el.dataset.tabPanel !== activeTab;
+  });
+  $("#plan-tabs").hidden = !isActiveMode;
+  $("#mobile-tabs").hidden = !isActiveMode;
+  $("#mobile-tabs").classList.toggle("is-active-mode", isActiveMode);
+  $("#start-plan").hidden = isActiveMode;
+  $("#finish-plan").hidden = !isActiveMode || session?.status === "finalizado";
+  $("#alternate-plan").hidden = isActiveMode;
+  $("#edit-plan").hidden = isActiveMode;
+  $$(".plan-tabs button, .mobile-tabs button").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === activeTab));
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  applyMode();
+  if (tab === "recorrido") campusMap.invalidateSize();
+}
+
+$$(".plan-tabs button, .mobile-tabs button").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
+
+$("#start-plan").addEventListener("click", () => {
+  if (!currentPlan || !lastPlanInputs) return;
+  const now = new Date();
+  session = {
+    id: createSessionId(),
+    createdAt: now.toISOString(),
+    startedAt: now.toISOString(),
+    finishedAt: null,
+    status: "activo",
+    planInputs: lastPlanInputs,
+    budget: null,
+    expenses: []
+  };
+  saveSession(session);
+  isActiveMode = true;
+  activeTab = "recorrido";
+  applyMode();
+  renderTimeline(currentPlan.steps);
+  renderBudgetUI();
+  showToast("Tu plan está activo. Ya puedes registrar gastos.");
+});
+
+$("#finish-plan").addEventListener("click", () => {
+  if (!session) return;
+  session.status = "finalizado";
+  session.finishedAt = new Date().toISOString();
+  saveSession(session);
+  applyMode();
+  renderFinalSummaryUI();
+  switchTab("resumen");
+  showToast("Plan finalizado. Aquí tienes tu resumen.");
+});
+
+/* --- Presupuesto --- */
+let selectedQuickAmount = null;
+
+$$(".budget-quick-btn").forEach(btn => btn.addEventListener("click", () => {
+  $$(".budget-quick-btn").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+  $("#budget-no-limit").checked = false;
+  if (btn.dataset.amount === "other") {
+    selectedQuickAmount = null;
+    $("#budget-custom-wrap").hidden = false;
+    $("#budget-custom-input").focus();
+  } else {
+    selectedQuickAmount = Number(btn.dataset.amount);
+    $("#budget-custom-wrap").hidden = true;
+    $("#budget-custom-input").value = "";
+  }
+}));
+
+$("#budget-no-limit").addEventListener("change", event => {
+  if (event.target.checked) {
+    selectedQuickAmount = null;
+    $$(".budget-quick-btn").forEach(b => b.classList.remove("selected"));
+    $("#budget-custom-wrap").hidden = true;
+    $("#budget-custom-input").value = "";
+  }
+});
+
+attachCurrencyInput($("#budget-custom-input"));
+
+$("#budget-save").addEventListener("click", () => {
+  if (!session) return;
+  const noLimit = $("#budget-no-limit").checked;
+  const customAmount = parseCOPInput($("#budget-custom-input").value);
+  const amount = noLimit ? null : (selectedQuickAmount || customAmount || 0);
+  if (!noLimit && amount <= 0) { showToast("Ingresa un presupuesto mayor a cero o elige “No quiero establecer un límite”."); return; }
+  session.budget = { amount: noLimit ? null : amount, noLimit };
+  saveSession(session);
+  renderBudgetUI();
+  showToast("Presupuesto guardado.");
+});
+
+$("#budget-edit").addEventListener("click", () => {
+  $("#budget-card").hidden = false;
+  $("#budget-active").hidden = true;
+  if (session?.budget && !session.budget.noLimit) {
+    const preset = [5000, 10000, 15000, 20000].includes(session.budget.amount);
+    if (preset) { $$(".budget-quick-btn").forEach(b => b.classList.toggle("selected", Number(b.dataset.amount) === session.budget.amount)); }
+    else { $(`.budget-quick-btn[data-amount="other"]`).classList.add("selected"); $("#budget-custom-wrap").hidden = false; $("#budget-custom-input").value = formatCOP(session.budget.amount); }
+  } else if (session?.budget?.noLimit) {
+    $("#budget-no-limit").checked = true;
+  }
+});
+
+function attachCurrencyInput(input) {
+  input.addEventListener("input", () => {
+    const digits = parseCOPInput(input.value);
+    input.value = digits ? formatCOP(digits) : "";
+  });
+}
+
+function renderBudgetUI() {
+  if (!session) return;
+  document.body.classList.toggle("plan-finalized", session.status === "finalizado");
+  const hasBudget = session.budget !== null;
+  $("#budget-card").hidden = hasBudget || session.status === "finalizado";
+  $("#budget-active").hidden = !hasBudget;
+  if (hasBudget) renderExpensesAll();
+}
+
+/* --- Registrar / editar gastos --- */
+const expenseDialog = $("#expense-dialog");
+
+function populateExpenseCategorySelect() {
+  $("#expense-category").innerHTML = EXPENSE_CATEGORIES.map(c => `<option value="${c.id}">${c.icon} ${c.label}</option>`).join("");
+}
+
+function populateExpensePlaceSelect(presetPlace) {
+  const select = $("#expense-place-select");
+  const planPlaces = currentPlan ? [...new Set(currentPlan.steps.filter(s => s.type === "activity").map(s => s.locationName))] : [];
+  const otherPlaces = LOCATIONS.map(p => p.name).filter(name => !planPlaces.includes(name));
+  select.innerHTML =
+    (planPlaces.length ? `<optgroup label="Lugares de tu plan">${planPlaces.map(n => `<option value="${n}">${n}</option>`).join("")}</optgroup>` : "") +
+    `<optgroup label="Otros lugares del campus">${otherPlaces.map(n => `<option value="${n}">${n}</option>`).join("")}</optgroup>` +
+    `<option value="__custom__">Otro lugar (escribir)</option>`;
+  if (presetPlace && [...select.options].some(o => o.value === presetPlace)) select.value = presetPlace;
+  $("#expense-place-custom-wrap").hidden = select.value !== "__custom__";
+}
+
+$("#expense-place-select").addEventListener("change", () => { $("#expense-place-custom-wrap").hidden = $("#expense-place-select").value !== "__custom__"; });
+
+function openExpenseModal(prefill = {}) {
+  if (!session || session.status === "finalizado") return;
+  editingExpenseId = prefill.id || null;
+  $("#expense-dialog-title").textContent = editingExpenseId ? "Editar gasto" : "Registrar gasto";
+  populateExpensePlaceSelect(prefill.place);
+  $("#expense-amount").value = prefill.amount ? formatCOP(prefill.amount) : "";
+  $("#expense-concept").value = prefill.concept || "";
+  $("#expense-category").value = prefill.category || EXPENSE_CATEGORIES[0].id;
+  $("#expense-time").value = prefill.time || new Date().toTimeString().slice(0, 5);
+  $("#expense-note").value = prefill.note || "";
+  $("#expense-form").dataset.goalKey = prefill.goalKey || "";
+  if (prefill.place && ![...$("#expense-place-select").options].some(o => o.value === prefill.place)) {
+    $("#expense-place-select").value = "__custom__";
+    $("#expense-place-custom-wrap").hidden = false;
+    $("#expense-place-custom").value = prefill.place;
+  }
+  $("#expense-validation-message").hidden = true;
+  expenseDialog.showModal();
+  $("#expense-amount").focus();
+}
+
+$("#open-expense-modal").addEventListener("click", () => openExpenseModal());
+$("#close-expense-dialog").addEventListener("click", () => expenseDialog.close());
+$("#cancel-expense").addEventListener("click", () => expenseDialog.close());
+attachCurrencyInput($("#expense-amount"));
+
+$("#expense-form").addEventListener("submit", event => {
+  event.preventDefault();
+  if (!session) return;
+  const placeSelectValue = $("#expense-place-select").value;
+  const place = placeSelectValue === "__custom__" ? $("#expense-place-custom").value : placeSelectValue;
+  const amount = parseCOPInput($("#expense-amount").value);
+  const data = { amount, concept: $("#expense-concept").value, category: $("#expense-category").value, place };
+  const error = validateExpenseInput(data);
+  if (error) { $("#expense-validation-message").hidden = false; $("#expense-validation-message").textContent = error; return; }
+  const time = $("#expense-time").value || new Date().toTimeString().slice(0, 5);
+  const note = $("#expense-note").value;
+  const goalKey = $("#expense-form").dataset.goalKey || null;
+  if (editingExpenseId) {
+    const index = session.expenses.findIndex(e => e.id === editingExpenseId);
+    if (index >= 0) session.expenses[index] = { ...session.expenses[index], amount: Math.round(amount), concept: data.concept.trim(), category: data.category, place: place.trim(), time, note: note.trim() };
+  } else {
+    session.expenses.unshift(createExpense({ ...data, time, note, goalKey }));
+  }
+  saveSession(session);
+  expenseDialog.close();
+  renderExpensesAll(true);
+  showToast(editingExpenseId ? "Gasto actualizado." : "Gasto registrado.");
+  editingExpenseId = null;
+});
+
+/* --- Confirmación genérica (eliminar gasto) --- */
+const confirmDialog = $("#confirm-dialog");
+$("#confirm-cancel").addEventListener("click", () => confirmDialog.close());
+$("#confirm-accept").addEventListener("click", () => {
+  if (pendingDelete) pendingDelete();
+  pendingDelete = null;
+  confirmDialog.close();
+});
+
+function askConfirm(message, onAccept) {
+  $("#confirm-message").textContent = message;
+  pendingDelete = onAccept;
+  confirmDialog.showModal();
+}
+
+/* --- Render del panel de gastos --- */
+function pulse(el) { el.classList.remove("pulse"); void el.offsetWidth; el.classList.add("pulse"); }
+
+function renderExpensesAll(animate = false) {
+  if (!session || session.budget === null) return;
+  const status = budgetStatus(session.budget, session.expenses);
+  $("#exp-stat-budget").textContent = status.hasLimit ? formatCOP(status.budget) : "Sin límite";
+  const spentEl = $("#exp-stat-spent"); spentEl.textContent = formatCOP(status.spent); if (animate) pulse(spentEl);
+  $("#exp-stat-available").textContent = status.hasLimit ? formatCOP(status.available) : "—";
+  $("#exp-stat-savings-label").textContent = status.hasLimit && status.excess > 0 ? "Exceso" : "Ahorro actual";
+  const savingsEl = $("#exp-stat-savings");
+  savingsEl.textContent = status.hasLimit ? formatCOP(status.excess > 0 ? status.excess : status.savings) : "—";
+  savingsEl.style.color = status.hasLimit && status.excess > 0 ? "var(--red)" : "";
+  if (animate) pulse(savingsEl);
+
+  const progressClass = progressState(status.percentUsed);
+  const fill = $("#budget-progress-fill");
+  fill.className = `budget-progress-fill ${progressClass}`;
+  fill.style.width = `${status.hasLimit ? Math.min(100, status.percentUsed) : 100}%`;
+  $("#budget-progress-message").textContent = progressMessage(status);
+
+  $("#expense-recommendations").innerHTML = realtimeRecommendations(status, session.expenses).map(t => `<p>💡 ${t}</p>`).join("");
+
+  const breakdown = categoryBreakdown(session.expenses);
+  $("#expense-breakdown-card").hidden = !breakdown.length;
+  $("#expense-breakdown-list").innerHTML = breakdown.map(b => `
+    <div class="breakdown-row">
+      <span>${b.info.icon}</span>
+      <span>${b.info.label}</span>
+      <strong>${formatCOP(b.amount)} · ${b.percent.toFixed(1).replace(".0", "")}%</strong>
+      <div class="breakdown-bar-track"><div class="breakdown-bar-fill" style="width:${b.percent}%"></div></div>
+    </div>`).join("");
+
+  renderExpenseHistory();
+}
+
+function formatTimeString(hhmm) {
+  const [h, m] = String(hhmm || "").split(":").map(Number);
+  if (Number.isNaN(h)) return hhmm;
+  const d = new Date();
+  d.setHours(h, m || 0, 0, 0);
+  return formatClock(d);
+}
+
+function renderExpenseHistory() {
+  const list = $("#expense-history-list");
+  const sorted = [...session.expenses].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  $("#empty-expenses").hidden = sorted.length > 0;
+  list.innerHTML = "";
+  sorted.forEach(exp => {
+    const info = EXPENSE_CATEGORIES.find(c => c.id === exp.category) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length - 1];
+    const li = document.createElement("li");
+    li.className = "expense-item";
+    li.innerHTML = `
+      <span class="expense-icon" aria-hidden="true">${info.icon}</span>
+      <div class="expense-main">
+        <strong>${exp.concept}</strong>
+        <p class="expense-meta">${exp.place} · ${formatTimeString(exp.time)}</p>
+        <span class="expense-category-tag">${info.label}</span>
+      </div>
+      <span class="expense-amount">− ${formatCOP(exp.amount)}</span>
+      <div class="expense-actions">
+        <button type="button" data-action="edit">Editar</button>
+        <button type="button" data-action="delete">Eliminar</button>
+      </div>`;
+    li.querySelector('[data-action="edit"]').addEventListener("click", () => openExpenseModal(exp));
+    li.querySelector('[data-action="delete"]').addEventListener("click", () => {
+      askConfirm(`¿Eliminar el gasto "${exp.concept}" por ${formatCOP(exp.amount)}?`, () => {
+        session.expenses = session.expenses.filter(e => e.id !== exp.id);
+        saveSession(session);
+        renderExpensesAll(true);
+        showToast("Gasto eliminado.");
+      });
+    });
+    list.append(li);
+  });
+}
+
+function renderFinalSummaryUI() {
+  if (!session) return;
+  finalSummaryReady = true;
+  const summary = finalSummary(session);
+  $("#final-summary-grid").innerHTML = `
+    <div class="expense-stat"><span>Presupuesto</span><strong>${summary.hasLimit ? formatCOP(summary.budget) : "Sin límite"}</strong></div>
+    <div class="expense-stat"><span>Total gastado</span><strong>${formatCOP(summary.totalSpent)}</strong></div>
+    <div class="expense-stat"><span>${summary.hasLimit && summary.excess > 0 ? "Exceso" : "Ahorraste"}</span><strong>${summary.hasLimit ? formatCOP(summary.excess > 0 ? summary.excess : summary.savings) : "—"}</strong></div>
+    <div class="expense-stat"><span>Movimientos</span><strong>${summary.count}</strong></div>
+    <div class="expense-stat"><span>Categoría con más gasto</span><strong>${summary.topCategory || "—"}</strong></div>
+    <div class="expense-stat"><span>Gasto más alto</span><strong>${summary.highestExpense ? formatCOP(summary.highestExpense.amount) : "—"}</strong></div>
+    <div class="expense-stat"><span>Promedio por movimiento</span><strong>${summary.count ? formatCOP(summary.average) : "—"}</strong></div>`;
+  $("#final-summary-breakdown").innerHTML = summary.breakdown.length ? `<h3>Distribución por categorías</h3>` + summary.breakdown.map(b => `
+    <div class="breakdown-row">
+      <span>${b.info.icon}</span><span>${b.info.label}</span>
+      <strong>${formatCOP(b.amount)} · ${b.percent.toFixed(1).replace(".0", "")}%</strong>
+      <div class="breakdown-bar-track"><div class="breakdown-bar-fill" style="width:${b.percent}%"></div></div>
+    </div>`).join("") : "";
+  $("#final-summary-recommendation").textContent = summary.recommendation;
+  applyMode();
+}
+
+function finalSummaryText() {
+  if (!session) return "";
+  const summary = finalSummary(session);
+  const lines = [
+    "Resumen financiero · Entre Clase",
+    `Presupuesto: ${summary.hasLimit ? formatCOP(summary.budget) : "Sin límite"}`,
+    `Total gastado: ${formatCOP(summary.totalSpent)}`,
+    summary.hasLimit ? (summary.excess > 0 ? `Exceso: ${formatCOP(summary.excess)}` : `Ahorraste: ${formatCOP(summary.savings)}`) : "",
+    `Movimientos: ${summary.count}`,
+    summary.topCategory ? `Categoría con más gasto: ${summary.topCategory}` : "",
+    summary.recommendation
+  ].filter(Boolean);
+  return lines.join("\n");
+}
+
+$("#final-save").addEventListener("click", () => { showToast("Resumen guardado en tu historial."); pushRecentPlan({ name: `${$("#plan-name").textContent} (finalizado)`, when: new Date().toLocaleString("es-CO", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short" }) }); renderHistoryList(); });
+$("#final-share").addEventListener("click", async () => {
+  const text = finalSummaryText();
+  if (navigator.share) { try { await navigator.share({ title: "Resumen de mi plan", text }); } catch { /* cancelado */ } }
+  else { await copyToClipboard(text); showToast("Tu navegador no soporta compartir directo: copiamos el resumen."); }
+});
+$("#final-copy").addEventListener("click", async () => { const ok = await copyToClipboard(finalSummaryText()); showToast(ok ? "Resumen copiado." : "No pudimos copiar automáticamente."); });
+$("#final-back").addEventListener("click", () => switchTab("recorrido"));
+$("#final-new").addEventListener("click", () => {
+  clearSession();
+  session = null;
+  isActiveMode = false;
+  finalSummaryReady = false;
+  $("#result-content").hidden = true;
+  $("#result-empty").hidden = false;
+  $("#result-actions").hidden = true;
+  $("#planner-form").scrollIntoView({ behavior: "smooth" });
+});
+
+function restoreSession() {
+  const saved = loadSession();
+  if (!saved) return;
+  session = saved;
+  const plan = buildPlan({ ...session.planInputs, now: new Date(session.startedAt) });
+  currentPlan = plan;
+  lastPlanInputs = session.planInputs;
+  isActiveMode = true;
+  activeTab = session.status === "finalizado" ? "resumen" : "recorrido";
+  $("#result-empty").hidden = true;
+  $("#result-loading").hidden = true;
+  $("#result-content").hidden = false;
+  $("#result-actions").hidden = false;
+  $("#result-eyebrow").textContent = session.status === "finalizado" ? "Plan finalizado" : "Plan en curso";
+  renderPlan(plan);
+  applyMode();
+  renderBudgetUI();
+  if (session.status === "finalizado") renderFinalSummaryUI();
+  startStatusLoop();
+  startPlanTimer();
+}
+
+/* ---------------------------------------------------------------------- */
 /* WebMCP: expone el planificador a agentes/asistentes                     */
 /* ---------------------------------------------------------------------- */
 function selectGoals(goals) {
@@ -900,6 +1293,7 @@ function registerWebMCP() {
 /* ---------------------------------------------------------------------- */
 populateLocations();
 populateCategoryFilters();
+populateExpenseCategorySelect();
 restoreFormState();
 updateTimeWindow();
 renumberSections();
@@ -907,4 +1301,5 @@ updateGoalCount();
 refreshValidation();
 renderDirectory();
 renderHistoryList();
+restoreSession();
 registerWebMCP();

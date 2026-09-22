@@ -149,6 +149,8 @@
           <div class="result-heading-actions" id="result-actions" hidden>
             <button class="secondary-action" id="alternate-plan" type="button">Ver otra opción</button>
             <button class="secondary-action" id="edit-plan" type="button">Editar preferencias</button>
+            <button class="primary-action start-plan-btn" id="start-plan" type="button">Iniciar plan <span>▶</span></button>
+            <button class="secondary-action danger-action" id="finish-plan" type="button" hidden>Finalizar plan</button>
           </div>
         </div>
 
@@ -190,21 +192,28 @@
             <button class="chip-action" id="action-print" type="button">🖨 Exportar / imprimir</button>
           </div>
 
-          <div class="summary-tiles" id="summary-tiles">
+          <nav class="plan-tabs" id="plan-tabs" role="tablist" aria-label="Secciones del plan activo" hidden>
+            <button type="button" role="tab" data-tab="recorrido" class="active">🗺 Mi recorrido</button>
+            <button type="button" role="tab" data-tab="actividades">📋 Actividades</button>
+            <button type="button" role="tab" data-tab="gastos">💳 Gastos</button>
+            <button type="button" role="tab" data-tab="resumen">📊 Resumen</button>
+          </nav>
+
+          <div class="summary-tiles" id="summary-tiles" data-tab-panel="resumen">
             <div class="tile"><span>Actividades</span><strong id="tile-activity-time"></strong></div>
             <div class="tile"><span>Caminando</span><strong id="tile-walk-time"></strong></div>
             <div class="tile"><span>Margen</span><strong id="tile-margin"></strong></div>
             <div class="tile"><span>Distancia total</span><strong id="tile-distance"></strong></div>
             <div class="tile"><span>Exigencia</span><strong id="tile-exigencia"></strong></div>
           </div>
-          <div class="distribution-bar" id="distribution-bar" aria-hidden="true">
+          <div class="distribution-bar" id="distribution-bar" data-tab-panel="resumen" aria-hidden="true">
             <span class="segment seg-activity" id="seg-activity"></span>
             <span class="segment seg-walk" id="seg-walk"></span>
             <span class="segment seg-margin" id="seg-margin"></span>
           </div>
 
           <div class="result-grid">
-            <article class="plan-card">
+            <article class="plan-card" data-tab-panel="actividades">
               <div class="plan-summary">
                 <span class="summary-icon" id="summary-icon">✦</span>
                 <div>
@@ -216,7 +225,7 @@
               <ol class="timeline" id="timeline"></ol>
             </article>
 
-            <article class="map-card" id="mapa" aria-labelledby="map-title">
+            <article class="map-card" id="mapa" data-tab-panel="recorrido" aria-labelledby="map-title">
               <div class="map-top">
                 <div>
                   <span class="meta">RUTA EN CAMPUS</span>
@@ -235,12 +244,72 @@
             </article>
           </div>
 
-          <div class="recommendations-card">
+          <div class="gastos-panel" id="gastos-panel" data-tab-panel="gastos">
+            <div class="budget-card" id="budget-card">
+              <h3>¿Cuánto quieres gastar durante este plan?</h3>
+              <p class="field-hint">Esto solo controla los gastos de este plan; no cambia tus recomendaciones.</p>
+              <div class="budget-quick-row">
+                <button type="button" class="budget-quick-btn" data-amount="5000">$5.000</button>
+                <button type="button" class="budget-quick-btn" data-amount="10000">$10.000</button>
+                <button type="button" class="budget-quick-btn" data-amount="15000">$15.000</button>
+                <button type="button" class="budget-quick-btn" data-amount="20000">$20.000</button>
+                <button type="button" class="budget-quick-btn" data-amount="other">Otro valor</button>
+              </div>
+              <label class="note-label" id="budget-custom-wrap" hidden>Presupuesto máximo<input id="budget-custom-input" type="text" inputmode="numeric" placeholder="$0" /></label>
+              <label class="check-row"><input type="checkbox" id="budget-no-limit" /> No quiero establecer un límite</label>
+              <button type="button" class="primary-action" id="budget-save">Guardar presupuesto</button>
+            </div>
+
+            <div class="budget-active" id="budget-active" hidden>
+              <div class="expense-summary-grid">
+                <div class="expense-stat"><span>Presupuesto inicial</span><strong id="exp-stat-budget"></strong></div>
+                <div class="expense-stat"><span>Total gastado</span><strong id="exp-stat-spent"></strong></div>
+                <div class="expense-stat"><span>Dinero disponible</span><strong id="exp-stat-available"></strong></div>
+                <div class="expense-stat"><span id="exp-stat-savings-label">Ahorro actual</span><strong id="exp-stat-savings"></strong></div>
+              </div>
+              <div class="budget-progress-wrap">
+                <div class="budget-progress" id="budget-progress"><div class="budget-progress-fill" id="budget-progress-fill"></div></div>
+                <p class="budget-progress-message" id="budget-progress-message"></p>
+              </div>
+              <button type="button" class="chip-action" id="budget-edit">✏️ Editar presupuesto</button>
+
+              <button type="button" class="primary-action expense-add-btn" id="open-expense-modal">+ Registrar gasto</button>
+
+              <div class="expense-recommendations" id="expense-recommendations"></div>
+
+              <div class="expense-breakdown-card" id="expense-breakdown-card" hidden>
+                <h3>¿En qué gastaste tu dinero?</h3>
+                <div id="expense-breakdown-list"></div>
+              </div>
+
+              <div class="expense-history-card">
+                <h3>Historial de gastos</h3>
+                <ul id="expense-history-list"></ul>
+                <p class="empty-expenses" id="empty-expenses">Todavía no registras gastos en este plan.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="recommendations-card" data-tab-panel="resumen">
             <h3>Recomendaciones para aprovechar mejor tu tiempo</h3>
             <ul id="recommendations-list"></ul>
           </div>
 
-          <div class="history-card" id="history-card" hidden>
+          <div class="final-summary-card" id="final-summary-card" data-tab-panel="resumen" hidden>
+            <h3>Resumen financiero del plan</h3>
+            <div class="expense-summary-grid" id="final-summary-grid"></div>
+            <div id="final-summary-breakdown"></div>
+            <p class="final-summary-recommendation" id="final-summary-recommendation"></p>
+            <div class="action-row">
+              <button class="chip-action" id="final-save">💾 Guardar resumen</button>
+              <button class="chip-action" id="final-share">🔗 Compartir resumen</button>
+              <button class="chip-action" id="final-copy">📋 Copiar resumen</button>
+              <button class="chip-action" id="final-back">↩ Volver al plan</button>
+              <button class="chip-action" id="final-new">✨ Crear un nuevo plan</button>
+            </div>
+          </div>
+
+          <div class="history-card" id="history-card" data-tab-panel="resumen" hidden>
             <h3>Planes recientes</h3>
             <ul id="history-list"></ul>
           </div>
@@ -316,6 +385,43 @@
       </ol>
       <button class="primary-action" id="start-planning" type="button">Entendido, crear mi plan</button>
     </dialog>
+
+    <dialog id="expense-dialog">
+      <button class="dialog-close" id="close-expense-dialog" type="button" aria-label="Cerrar">×</button>
+      <p class="eyebrow">Nuevo gasto</p>
+      <h2 id="expense-dialog-title">Registrar gasto</h2>
+      <form id="expense-form" novalidate>
+        <label class="note-label">Valor gastado<input id="expense-amount" type="text" inputmode="numeric" placeholder="$0" required /></label>
+        <label class="note-label">Concepto o descripción<input id="expense-concept" type="text" maxlength="60" placeholder="Ej. Almuerzo" required /></label>
+        <div class="two-select-grid">
+          <label class="select-wrap"><span class="select-label">Categoría</span><select id="expense-category"></select></label>
+          <label class="select-wrap"><span class="select-label">Hora</span><input id="expense-time" type="time" /></label>
+        </div>
+        <label class="select-wrap"><span class="select-label">Lugar</span><select id="expense-place-select"></select></label>
+        <label class="note-label" id="expense-place-custom-wrap" hidden>Escribe el lugar<input id="expense-place-custom" type="text" maxlength="60" /></label>
+        <label class="note-label">Nota opcional<input id="expense-note" type="text" maxlength="80" placeholder="Ej. compartido con un compañero" /></label>
+        <p class="form-validation-message" id="expense-validation-message" hidden role="alert"></p>
+        <div class="action-row">
+          <button type="submit" class="primary-action">Guardar gasto</button>
+          <button type="button" class="chip-action" id="cancel-expense">Cancelar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="confirm-dialog">
+      <p id="confirm-message">¿Seguro que quieres continuar?</p>
+      <div class="action-row">
+        <button type="button" class="primary-action danger-action" id="confirm-accept">Eliminar</button>
+        <button type="button" class="chip-action" id="confirm-cancel">Cancelar</button>
+      </div>
+    </dialog>
+
+    <nav class="mobile-tabs" id="mobile-tabs" hidden aria-label="Navegación del plan activo">
+      <button type="button" data-tab="recorrido" class="active"><span aria-hidden="true">🗺</span>Ruta</button>
+      <button type="button" data-tab="actividades"><span aria-hidden="true">📋</span>Plan</button>
+      <button type="button" data-tab="gastos"><span aria-hidden="true">💳</span>Gastos</button>
+      <button type="button" data-tab="resumen"><span aria-hidden="true">📊</span>Resumen</button>
+    </nav>
 
     <div class="alarm-bar" id="alarm-bar" hidden role="status" aria-live="assertive">
       <span id="alarm-status">Alarma programada</span>

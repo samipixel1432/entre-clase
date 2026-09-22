@@ -34,3 +34,32 @@ export function loadRecentPlans() {
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
+
+/* ---------------------------------------------------------------------- */
+/* Sesión de plan activo (recorrido + gastos)                              */
+/*                                                                          */
+/* Solo existe una sesión "actual" a la vez. Guarda los datos de entrada   */
+/* del plan (para poder reconstruirlo con exactitud tras recargar la       */
+/* página) junto con su presupuesto y su lista de gastos, que nunca se     */
+/* mezclan con los de otro plan porque viven bajo el mismo `id`.           */
+/* ---------------------------------------------------------------------- */
+const SESSION_KEY = "entre-clase:plan-session";
+
+export function saveSession(session) {
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch { /* almacenamiento no disponible */ }
+}
+
+export function loadSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+export function clearSession() {
+  try { localStorage.removeItem(SESSION_KEY); } catch { /* no-op */ }
+}
+
+export function createSessionId() {
+  return `plan_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
